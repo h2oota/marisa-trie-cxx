@@ -1,0 +1,26 @@
+[package]
+name = "marisa"
+version = "0.0.1"
+#edition = "2024"
+edition = "2021"
+
+[package.metadata]
+marisa_version = "v0.3.1"
+
+[dependencies]
+ffi = "0.1"
+libc = "0.2"
+
+[build-dependencies]
+bindgen = "0.71"
+cc = "1.2"
+fs = "0.0"
+libloading = "0.8"
+pkg-config = "0.3"
+cmake = "0.1"
+# ureq = { version = "3", features = ["tls"] }
+ureq = "3.1"
+cargo_metadata = "0.18"
+
+[dev-dependencies]
+rand = "0.8"
