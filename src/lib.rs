@@ -1,7 +1,15 @@
+// ===== Feature-based build mode flags =====
+/// Build mode: "use_system_marisa" or "vendored"
+#[cfg(feature = "use_system_marisa")]
+pub const BUILD_MODE: &str = "use_system_marisa";
+#[cfg(not(feature = "use_system_marisa"))]
+pub const BUILD_MODE: &str = "vendored";
 
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
+// ===== Public modules =====
+
+mod marisa;
+
+// ===== Re-exports (public API surface) =====
 
 pub use marisa:: {
     KeyObject as Key,
@@ -20,5 +28,3 @@ pub use marisa:: {
 
     MarisaError,
 };
-
-mod marisa;

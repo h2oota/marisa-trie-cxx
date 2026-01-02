@@ -1,20 +1,12 @@
 #![allow(unused_imports)]
-// #![feature(specialization)]
 
-// pub use create::agent::*;
-// pub use key::*;
-// pub use keyset::*;
-// pub use trie::*;
-
-// mod agent;
-// mod key;
-// mod keyset;
-// mod trie;
-
-//use libc::size_t;
-
-
-//use std::os::raw::{c_char, c_ulong};
+#[allow(dead_code)]
+#[allow(non_upper_case_globals)]
+#[allow(non_camel_case_types)]
+mod marisa_wrapper;
+#[allow(non_camel_case_types)]
+mod utils;
+mod object;
 
 pub use marisa_wrapper::marisa_num_tries_MARISA_MIN_NUM_TRIES as MARISA_MIN_NUM_TRIES;
 pub use marisa_wrapper::marisa_num_tries_MARISA_MAX_NUM_TRIES as MARISA_MAX_NUM_TRIES;
@@ -83,10 +75,6 @@ pub use object::{
     AgentTrait,
     TrieTrait,
 };
-
-mod utils;
-mod marisa_wrapper;
-mod object;
 
 
 #[cfg(test)]
