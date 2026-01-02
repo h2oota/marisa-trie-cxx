@@ -4,6 +4,9 @@ version = "0.0.1"
 #edition = "2024"
 edition = "2021"
 
+[features]
+use_system_marisa = []
+
 [package.metadata]
 marisa_version = "v0.3.1"
 

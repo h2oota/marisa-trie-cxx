@@ -168,16 +168,22 @@ fn main() {
         let sdk_path = String::from_utf8(sdk_path).expect("Invalid UTF-8 output").trim().to_string();
 
 	unsafe {std::env::set_var("SDKROOT", sdk_path)}
-        // println!("cargo:rustc-env=SDKROOT={}", sdk_path);
     }
 
     let out_dir_str = env::var("OUT_DIR").expect("Failed to get OUT_DIR");
     let out_dir = Path::new(&out_dir_str);
 
-    let marisa_dir = build_marisa(&out_dir);
-    let libmarisa_config = {
+    let (libmarisa_config, cxx, libcxx) = {
 	let old_var = std::env::var_os("PKG_CONFIG_PATH");
-	std::env::set_var("PKG_CONFIG_PATH", marisa_dir.join("pkgconfig"));
+	let use_system_marisa = std::env::var("CARGO_FEATURE_USE_SYSTEM_MARISA").is_ok();
+	let (_cc, cxx, libcxx) = check_compiler();
+
+	// download and compile marisa-trie from github.
+	if ! use_system_marisa {
+	    let marisa_dir = build_marisa(&out_dir); // download & compile marisa-trie
+	    std::env::set_var("PKG_CONFIG_PATH", marisa_dir.join("pkgconfig"));
+	}
+
 	let libmarisa_config = match pkg_config::Config::new()
 	    .statik(true)
 	    .probe("marisa") {
@@ -189,7 +195,11 @@ fn main() {
 	} else {
 	    std::env::set_var("PKG_CONFIG_PATH", old_var.unwrap());
 	}
-	libmarisa_config
+	if use_system_marisa {
+	    (libmarisa_config, cxx, None)
+	} else {
+	    (libmarisa_config, cxx, libcxx)
+	}
     };
 
     let lib_name = format!(
@@ -203,7 +213,6 @@ fn main() {
             });
     let lib_path = Path::new(&out_dir).join(&lib_name);
 
-    let (_cc, cxx, libcxx) = check_compiler();
 
 
     // sizeof(int)とsizeof(void*)を取得するライブラリ
@@ -341,17 +350,8 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
         .header("src/marisa/marisa-wrapper.hpp")
         .allowlist_function("(?:key|query|keyset|agent|trie)_[A-Za-z0-9_]+")
         .allowlist_function("exception_(?:name|message)")
-        .allowlist_type("marisa::(?:Key)")
-//        .allowlist_type("marisa::(?:ErrorCode|CacheLevel|TailMode|NodeOrder)")
         .allowlist_type("marisa_num_tries|marisa_cache_level|marisa_tail_mode|marisa_node_order|marisa_config_mask")
 	.opaque_type("marisa::.*")
-
-//        .raw_line("type _Unused_0 = marisa_num_tries;")
-//        .raw_line("type _Unused_1 = marisa_cache_level;")
-//        .raw_line("type _Unused_2 = marisa_config_mask;")
-
-//        .raw_line("const _: () = { let _ = marisa_Keyset_BASE_BLOCK_SIZE;  };")
-	.raw_line("type _Unused = (marisa_num_tries, marisa_cache_level, marisa_config_mask);")
         .disable_functions(disable_in_release)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
 //        .no_copy(true)
@@ -366,11 +366,11 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
 	println!("cargo:rustc-link-search=native={}", dir.display());
     }
 
-    if let Some(lib) = libcxx {
+    if let Some(lib) = libcxx { // C++ runtime for marisa static library
 	println!("cargo:rustc-link-lib={}", lib);
     }
 
-    println!("cargo:rustc-link-lib=static=marisa");
+    println!("cargo:rustc-link-lib=marisa");
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/marisa/marisa-wrapper.hpp");
 
