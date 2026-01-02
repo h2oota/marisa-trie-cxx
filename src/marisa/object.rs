@@ -1,4 +1,3 @@
-
 #![allow(dead_code)]
 
 use std::ffi::CStr;
@@ -21,7 +20,10 @@ enum RawObject {
     ConstQuery(*const marisa_Query),
 }
 
-// Lifetime management of a struct that has a C++ object pointer called const some_Class as a member.
+/// Lifetime management of a struct that has a C++ object pointer called const some_Class as a member.
+///
+/// 日本語: C++ 側のオブジェクトポインタを保持し、そのライフタイムを管理するための内部列挙型です。
+/// English: Internal enum representing ownership of underlying C/C++ objects and managing their drop behavior.
 pub struct Object<'a, T> {
     object: RawObject,
     _marker: PhantomData<&'a T>,
@@ -86,6 +88,8 @@ fn get_ptr_length<T>(obj: *const T, funcs: &KQFunc<T>) ->
 pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
     const FUNCS: KQFunc<T>;
 
+    /// 日本語: オブジェクトが表すデータを UTF-8 文字列として返します。エラー時は MarisaError を返します。
+    /// English: Return the object's data as a UTF-8 string slice. Returns MarisaError on failure.
     fn str(&self) -> Result<&str, MarisaError> {
 	let obj = self.const_pointer();
 	let (ptr, length) = get_ptr_length::<T>(obj, &Self::FUNCS)?;
@@ -105,6 +109,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
+    /// 日本語: オブジェクトが表すデータをバイト列として返します。エラー時は MarisaError を返します。
+    /// English: Return the object's data as a byte slice. Returns MarisaError on failure.
     fn bin(&self) -> Result<&[u8], MarisaError> {
 	let obj = self.const_pointer();
 	let (ptr, length) = get_ptr_length::<T>(obj, &Self::FUNCS)?;
@@ -120,6 +126,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
+    /// 日本語: 指定したインデックスの値（文字）を取得します。エラー時は MarisaError を返します。
+    /// English: Get the character at the specified index. Returns MarisaError on failure.
     fn get(&self, i: usize) -> Result<char, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -131,7 +139,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
-//    #[cfg(not(release))]
+    /// 日本語: 生ポインタを取得します。内部使用や高度な操作向けです。
+    /// English: Return the raw pointer to the underlying data. Intended for internal or advanced usage.
     fn ptr(&self) -> Result<*const u8, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -143,6 +152,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
+    /// 日本語: オブジェクトに関連付けられた ID を取得します。
+    /// English: Retrieve the ID associated with the object.
     fn id(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -154,7 +165,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
-//    #[cfg(not(release))]
+    /// 日本語: データの長さ（バイト数）を返します。
+    /// English: Return the length (in bytes) of the object's data.
     fn length(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -166,7 +178,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
-//    #[cfg(not(release))]
+    /// 日本語: オブジェクトに UTF-8 文字列を設定します。
+    /// English: Set the object's data from a UTF-8 string.
     fn set_str(&mut self, str: &str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -178,7 +191,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
-//    #[cfg(not(release))]
+    /// 日本語: 指定された長さでデータを設定します（バイト単位）。部分バッファを渡す用途に便利です。
+    /// English: Set the object's data with a specified length (in bytes). Useful for passing partial buffers.
     fn set_str_length(&mut self, str: &str, length: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -190,7 +204,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
-//    #[cfg(not(release))]
+    /// 日本語: オブジェクトに ID を設定します。
+    /// English: Set the ID associated with the object.
     fn set_id(&mut self, id: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -204,7 +219,8 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 }
 
 pub trait KeyTrait: BaseTrait<marisa_Key> + PointerTrait<marisa_Key>  {
-//    #[cfg(not(release))]
+    /// 日本語: キーに関連付けられた重み（weight）を返します。
+    /// English: Return the weight associated with the key.
     fn weight(&self) -> Result<f32, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -216,7 +232,8 @@ pub trait KeyTrait: BaseTrait<marisa_Key> + PointerTrait<marisa_Key>  {
 	}
     }
 
-//    #[cfg(not(release))]
+    /// 日本語: キーに重み（weight）を設定します。
+    /// English: Set the weight associated with the key.
     fn set_weight(&mut self, weight: f32) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -230,6 +247,8 @@ pub trait KeyTrait: BaseTrait<marisa_Key> + PointerTrait<marisa_Key>  {
 }
 
 pub trait QueryTrait: BaseTrait<marisa_Query> + PointerTrait<marisa_Query> {
+    /// 日本語: クエリをクリアして初期状態に戻します。
+    /// English: Clear the query and reset it to the initial state.
     fn clear(&mut self) -> Result<(), MarisaError>  {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -255,7 +274,7 @@ pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
     }
 
     fn push_back_key_em(&mut self, key: &KeyObject, end_marker: char) -> Result<(), MarisaError> {
-  	let obj = self.mut_pointer();
+    	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	unsafe {(keyset_push_back_1)(
 	    obj, key.const_pointer(), end_marker as utils::cuchar, &mut err_record) }
@@ -420,6 +439,8 @@ pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
 }
 
 pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
+    /// 日本語: Agent に関連付けられた Query オブジェクトを取得します。
+    /// English: Get the Query object associated with the Agent.
     fn query(&self) -> Result<QueryObject<'_>, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -434,6 +455,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent に関連付けられた Key オブジェクトを取得します。
+    /// English: Get the Key object associated with the Agent.
     fn key(&self) -> Result<KeyObject<'_>, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -448,6 +471,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent のクエリを文字列で設定します。
+    /// English: Set the Agent's query using a string.
     fn set_query_str(&mut self, s: &str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -459,6 +484,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent のクエリを指定長で設定します。
+    /// English: Set the Agent's query with a specified length.
     fn set_query_str_len(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -470,6 +497,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent のクエリ ID を設定します。
+    /// English: Set the query ID on the Agent.
     fn set_query_id(&mut self, id: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -481,6 +510,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent の Key を文字列で設定します。
+    /// English: Set the Agent's Key using a string.
     fn set_key_str(&mut self, s: &str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -492,6 +523,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent の Key を指定長で設定します。
+    /// English: Set the Agent's Key with a specified length.
     fn set_key_str_length(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -503,6 +536,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent の Key ID を設定します。
+    /// English: Set the Key ID on the Agent.
     fn set_key_id(&mut self, id: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -514,6 +549,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: 現在の Agent が有効な状態を持つかどうかを返します。
+    /// English: Check whether the Agent currently has a valid internal state.
     fn has_state(&self) -> Result<bool, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -525,6 +562,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent の内部状態を初期化します。
+    /// English: Initialize the Agent's internal state.
     fn init_state(&mut self) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -536,6 +575,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: Agent をクリアして初期状態に戻します。
+    /// English: Clear the Agent and reset it to its initial state.
     fn clear(&mut self) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -547,6 +588,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
+    /// 日本語: 他の Agent と内部データを交換します。
+    /// English: Swap internal data with another Agent.
     fn swap(&mut self, mut rhs: AgentObject) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -561,6 +604,8 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 }
 
 pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
+    /// 日本語: Keyset を使って Trie を構築します。config_flags は marisa の設定フラグを指定します。
+    /// English: Build the Trie from a Keyset. `config_flags` specify MARISA configuration flags.
     fn build(&mut self, keyset: &mut KeysetObject, config_flags: utils::cint) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let keyset_obj = keyset.mut_pointer();
@@ -573,6 +618,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: ファイルをメモリマップして Trie を読み込みます。
+    /// English: Memory-map a file to load the Trie.
     fn mmap(&mut self, filename: &str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -584,11 +631,13 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: 生バイト列をマップして Trie を読み込みます（メモリ上のバッファ）。
+    /// English: Map raw bytes (in-memory buffer) to load the Trie.
     fn map(&mut self, ptr: &[u8]) -> Result<(), MarisaError>  {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	unsafe { (trie_map)(obj, ptr.as_ptr() as *const std::os::raw::c_void,
-					   ptr.len(), &mut err_record) };
+			   ptr.len(), &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -596,6 +645,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: ファイルから Trie をロードします。
+    /// English: Load the Trie from a file.
     fn load(&mut self, filename: &str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -607,6 +658,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie をファイルに保存します。
+    /// English: Save the Trie to a file.
     fn save(&self, filename: &str) -> Result<(), MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -618,6 +671,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Agent を使って完全一致検索を実行します。戻り値は発見の有無を示します。
+    /// English: Perform lookup (exact match) using an Agent. Returns true if found.
     fn lookup(&self, agent: &mut AgentObject) -> Result<bool, MarisaError> {
 	let obj = self.const_pointer();
 	let agt_obj = agent.mut_pointer();
@@ -630,6 +685,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Agent を使って逆順検索を実行します（結果は Agent に書き戻されます）。
+    /// English: Perform reverse lookup using an Agent (results written back into the Agent).
     fn reverse_lookup(&self, agent: &mut AgentObject) -> Result<(), MarisaError> {
 	let obj = self.const_pointer();
 	let agt_obj = agent.mut_pointer();
@@ -642,6 +699,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Agent を使って共通接頭辞検索を行います。戻り値は発見の有無を示します。
+    /// English: Perform common-prefix search using an Agent. Returns true if any prefix is found.
     fn common_prefix_search(&self, agent: &mut AgentObject) -> Result<bool, MarisaError> {
 	let obj = self.const_pointer();
 	let agt_obj = agent.mut_pointer();
@@ -654,6 +713,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Agent を使って予測検索（prefix に基づく候補取得）を行います。戻り値は発見の有無を示します。
+    /// English: Perform predictive search using an Agent (retrieve candidates based on prefix). Returns true if any found.
     fn predictive_search(&self, agent: &mut AgentObject) -> Result<bool, MarisaError> {
 	let obj = self.const_pointer();
 	let agt_obj = agent.mut_pointer();
@@ -666,6 +727,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: 現在の Trie に設定されている試行回数（num_tries）を返します。
+    /// English: Return the number of tries (num_tries) configured for the Trie.
     fn num_tries(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -677,6 +740,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie に含まれるキー数を返します。
+    /// English: Return the number of keys contained in the Trie.
     fn num_keys(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -688,6 +753,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie のノード数を返します。
+    /// English: Return the number of nodes in the Trie.
     fn num_nodes(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -699,6 +766,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: 現在の Trie のテールモードを返します。
+    /// English: Return the tail mode currently used by the Trie.
     fn tail_mode(&self) -> Result<marisa_TailMode, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -710,6 +779,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: 現在の Trie のノード順序（node order）を返します。
+    /// English: Return the node order currently used by the Trie.
     fn node_order(&self) -> Result<marisa_NodeOrder, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -721,6 +792,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie の内容をクリアします。
+    /// English: Clear the contents of the Trie.
     fn clear(&mut self) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -732,6 +805,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: 他の Trie と内部データを交換します。
+    /// English: Swap internal data with another Trie.
     fn swap(&mut self, mut rhs: TrieObject) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let rhs_obj = rhs.mut_pointer();
@@ -744,6 +819,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie が空かどうかを返します。
+    /// English: Return whether the Trie is empty.
     fn empty(&self) -> Result<bool, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -755,6 +832,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie のサイズ（キー数に依らない内部表現のサイズ）を返します。
+    /// English: Return the size of the Trie (internal representation size, independent of key count).
     fn size(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -766,6 +845,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: Trie が保持する全データの合計長を返します。
+    /// English: Return the total length of all data held by the Trie.
     fn total_size(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -777,6 +858,8 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    /// 日本語: IO に必要なサイズを返します（シリアライズ/保存時の参考）。
+    /// English: Return the IO size required (useful for serialization/storage).
     fn io_size(&self) -> Result<usize, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -950,7 +1033,7 @@ impl PointerTrait<marisa_Agent> for AgentObject<'_> {
     }
 }
 
-impl AgentTrait for AgentObject<'_> { }
+impl AgentTrait for AgentObject<'_'>{ }
 
 // Trie
 impl BaseTrait<marisa_Trie> for TrieObject<'_> {
