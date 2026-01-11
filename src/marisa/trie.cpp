@@ -53,6 +53,17 @@ void trie_load(marisa::Trie* trie, const unsigned char* filename, const struct e
      }
 }
 
+void trie_read(marisa::Trie* trie, const int fd, const struct exception_record ** exception)
+{
+     *exception = nullptr;
+     try {
+	  trie->read(fd);
+     } catch (const std::exception &ex) {
+	  *exception = save_exception(ex);
+     }
+}
+
+
 void trie_save(const marisa::Trie* trie, const unsigned char* filename, const struct exception_record ** exception)
 {
      *exception = nullptr;
@@ -62,6 +73,17 @@ void trie_save(const marisa::Trie* trie, const unsigned char* filename, const st
 	  *exception = save_exception(ex);
      }
 }
+
+void trie_write(const marisa::Trie* trie, const int fd, const struct exception_record ** exception)
+{
+     *exception = nullptr;
+     try {
+	  trie->write(fd);
+     } catch (const std::exception &ex) {
+	  *exception = save_exception(ex);
+     }
+}
+
 
 bool trie_lookup(const marisa::Trie* trie, marisa::Agent& agent, const struct exception_record ** exception)
 {

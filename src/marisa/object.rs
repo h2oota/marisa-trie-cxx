@@ -5,6 +5,7 @@ use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::ptr;
 use std::marker::PhantomData;
+use std::ops::Index;
 
 use super::*;
 use super::marisa_wrapper::*;
@@ -38,7 +39,7 @@ pub trait BaseTrait<T> {
     fn new() -> Self;
 }
 
-trait PointerTrait<T> {
+pub trait PointerTrait<T> {
     fn const_pointer(&self) -> *const T;
     fn mut_pointer(&mut self) -> *mut T;
 }
@@ -53,7 +54,7 @@ fn from_exception(err_record: *const exception_record) -> MarisaError
     }
 }
 
-struct KQFunc<T> {
+pub struct KQFunc<T> {
     get: unsafe extern "C" fn(*const T, index: usize, *mut *const exception_record) -> utils::cuchar,
     ptr: unsafe extern "C" fn(*const T, *mut *const exception_record) -> *const utils::cuchar,
     length: unsafe extern "C" fn(*const T, *mut *const exception_record) -> usize,
@@ -448,10 +449,11 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
-    fn set_query_str(&mut self, s: &str) -> Result<(), MarisaError> {
+    fn set_query_str(&mut self, s: &str) -> Result<() , MarisaError>
+    {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_set_query_1)(obj, s.as_ptr(), s.len(), &mut err_record) };
+	unsafe { agent_set_query_1(obj, s.as_ptr(), s.len(), &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -462,7 +464,7 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
     fn set_query_str_len(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_set_query_1)(obj, s.as_ptr(), l, &mut err_record) };
+	unsafe { agent_set_query_1(obj, s.as_ptr(), l, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -561,11 +563,11 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 }
 
 pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
-    fn build(&mut self, keyset: &mut KeysetObject, config_flags: utils::cint) -> Result<(), MarisaError> {
+    fn build(&mut self, keyset: &mut KeysetObject, config_flags: u32) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let keyset_obj = keyset.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (trie_build)(obj, keyset_obj, config_flags, &mut err_record) };
+	unsafe { (trie_build)(obj, keyset_obj, config_flags as utils::cint, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -607,10 +609,33 @@ pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
 	}
     }
 
+    fn read(&mut self, fd: utils::cint) -> Result<(), MarisaError> {
+	let obj = self.mut_pointer();
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_read)(obj, fd, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(from_exception(err_record))
+	}
+    }
+
+
     fn save(&self, filename: &str) -> Result<(), MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	unsafe { (trie_save)(obj, filename.as_ptr(), &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(from_exception(err_record))
+	}
+    }
+
+    fn write(&self, fd: utils::cint) -> Result<(), MarisaError> {
+	let obj = self.const_pointer();
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_write)(obj, fd, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -850,6 +875,15 @@ impl KQTrait<marisa_Key> for KeyObject<'_> {
     };
 }
 
+/*
+impl Index<KeyObject<'_>> for KeyObject<'_> {
+    type Output = char;
+
+    fn index(&self, nucleotide: Nucleotide) -> &Self::Output {
+    ]
+}
+*/
+
 // Query
 impl BaseTrait<marisa_Query> for QueryObject<'_> {
     fn new() -> Self {
@@ -950,7 +984,7 @@ impl PointerTrait<marisa_Agent> for AgentObject<'_> {
     }
 }
 
-impl AgentTrait for AgentObject<'_> { }
+impl<'a> AgentTrait for AgentObject<'a> { }
 
 // Trie
 impl BaseTrait<marisa_Trie> for TrieObject<'_> {

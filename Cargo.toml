@@ -1,5 +1,5 @@
 [package]
-name = "marisa"
+name = "marisa-trie-cxx"
 version = "0.0.1"
 #edition = "2024"
 edition = "2021"
@@ -23,7 +23,8 @@ pkg-config = "0.3"
 cmake = "0.1"
 # ureq = { version = "3", features = ["tls"] }
 ureq = "3.1"
-cargo_metadata = "0.18"
+cargo_metadata = "0.23"
 
 [dev-dependencies]
 rand = "0.8"
+static_assertions = "1"

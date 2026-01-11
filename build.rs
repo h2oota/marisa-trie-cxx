@@ -214,7 +214,6 @@ fn main() {
     let lib_path = Path::new(&out_dir).join(&lib_name);
 
 
-
     // sizeof(int)とsizeof(void*)を取得するライブラリ
     let status = std::process::Command::new(cxx)
         .arg("-shared") // 共有ライブラリを生成するフラグ

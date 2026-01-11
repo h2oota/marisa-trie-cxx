@@ -579,7 +579,7 @@ mod marisa_tests {
 	assert_eq!("chat", agent.key()?.str()?);
 	assert!(!trie.predictive_search(&mut agent)?);
 
-	assert!(trie.build(&mut keyset, (1 | MARISA_LABEL_ORDER) as i32).is_ok());
+	assert!(trie.build(&mut keyset, 1 | MARISA_LABEL_ORDER).is_ok());
 
 	assert_eq!(1, trie.num_tries()?);
 	assert_eq!(4, trie.num_keys()?);
@@ -650,7 +650,7 @@ mod marisa_tests {
 		  keyset: &mut KeysetObject) -> Result<(), MarisaError> {
 	let mut trie = TrieObject::new();
 
-	assert!(trie.build(keyset, (num_tries as utils::cuint | tail_mode | node_order) as utils::cint).is_ok());
+	assert!(trie.build(keyset, num_tries as u32 | tail_mode | node_order).is_ok());
 
 	assert_eq!(num_tries, trie.num_tries()?);
 	assert!(keyset.size()? >= trie.num_keys()?);
@@ -709,3 +709,22 @@ mod marisa_tests {
 	Ok(())
     }
 }
+
+/*
+#[cfg(test)]
+mod tests_thread_safety {
+    use crate::marisa::*;
+
+    use static_assertions::assert_impl_all;
+
+    #[test]
+    fn test_library()
+    {
+	assert_impl_all!(TrieObject: Send, Sync);
+	assert_impl_all!(AgentObject: Send, Sync);
+	assert_impl_all!(KeysetObject: Send, Sync);
+	assert_impl_all!(QueryObject: Send, Sync);
+	assert_impl_all!(KeyObject: Send, Sync);
+    }
+}
+*/

@@ -93,10 +93,10 @@ extern "C" {
      void trie_map(marisa::Trie*, const void*, std::size_t, const struct exception_record **);
 
      void trie_load(marisa::Trie*, const unsigned char*, const struct exception_record **);
-     // void read(marisa::Trie*, int);
+     void trie_read(marisa::Trie*, int, const struct exception_record **);
 
      void trie_save(const marisa::Trie*, const unsigned char *, const struct exception_record **);
-     // void write(const marisa::Trie*, int fd) const;
+     void trie_write(const marisa::Trie*, int fd, const struct exception_record **);
 
      bool trie_lookup(const marisa::Trie*, marisa::Agent&, const struct exception_record **);
      void trie_reverse_lookup(const marisa::Trie*, marisa::Agent&, const struct exception_record **);
