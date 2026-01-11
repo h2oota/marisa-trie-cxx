@@ -526,7 +526,10 @@ mod marisa_tests {
 	let mut agent = AgentObject::new();
 
 	for i in 0 .. keyset.size()? {
-	    assert!(agent.set_query_str(keyset.get(i)?.str()?).is_ok());
+	    let key = keyset.get(i)?;
+	    let s = key.str()?;
+
+	    assert!(agent.set_query_str(s).is_ok());
 	    assert!(trie.lookup(&mut agent)?);
 	    assert_eq!(keyset.get(i)?.id()?, agent.key()?.id()?);
 
@@ -537,6 +540,7 @@ mod marisa_tests {
 	    assert_eq!(keyset.get(i)?.str()?, agent.key()?.str()?);
 	}
 
+	let mut agent = AgentObject::new();
 	assert!(agent.set_query_str("be").is_ok());
 	assert!(!trie.common_prefix_search(&mut agent)?);
 	assert!(agent.set_query_str("beX").is_ok());
@@ -594,6 +598,7 @@ mod marisa_tests {
 	assert_eq!(3, keyset.get(3)?.id()?);
 	assert_eq!(3, keyset.get(4)?.id()?);
 
+	let mut agent = AgentObject::new();
 	for i in 0 .. keyset.size()? {
 	    assert!(agent.set_query_str(keyset.get(i)?.str()?).is_ok());
 	    assert!(trie.lookup(&mut agent)?);

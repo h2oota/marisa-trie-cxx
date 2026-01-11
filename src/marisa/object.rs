@@ -84,10 +84,10 @@ fn get_ptr_length<T>(obj: *const T, funcs: &KQFunc<T>) ->
 }
 
 // Key and Query Common
-pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
+pub trait KQTrait<'a, T>: BaseTrait<T> + PointerTrait<T> {
     const FUNCS: KQFunc<T>;
 
-    fn str(&self) -> Result<&str, MarisaError> {
+    fn str(&self) -> Result<&'a str, MarisaError> {
 	let obj = self.const_pointer();
 	let (ptr, length) = get_ptr_length::<T>(obj, &Self::FUNCS)?;
 	if ptr.is_null() && length > 0 {
@@ -106,7 +106,7 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
 	}
     }
 
-    fn bin(&self) -> Result<&[u8], MarisaError> {
+    fn bin(&self) -> Result<&'a [u8], MarisaError> {
 	let obj = self.const_pointer();
 	let (ptr, length) = get_ptr_length::<T>(obj, &Self::FUNCS)?;
 	if ptr.is_null() && length > 0 {
@@ -204,7 +204,7 @@ pub trait KQTrait<T>: BaseTrait<T> + PointerTrait<T> {
     }
 }
 
-pub trait KeyTrait: BaseTrait<marisa_Key> + PointerTrait<marisa_Key>  {
+pub trait KeyTrait<'a>: BaseTrait<marisa_Key> + PointerTrait<marisa_Key>  {
 //    #[cfg(not(release))]
     fn weight(&self) -> Result<f32, MarisaError> {
 	let obj = self.const_pointer();
@@ -230,7 +230,7 @@ pub trait KeyTrait: BaseTrait<marisa_Key> + PointerTrait<marisa_Key>  {
     }
 }
 
-pub trait QueryTrait: BaseTrait<marisa_Query> + PointerTrait<marisa_Query> {
+pub trait QueryTrait<'a>: BaseTrait<marisa_Query> + PointerTrait<marisa_Query> {
     fn clear(&mut self) -> Result<(), MarisaError>  {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -243,7 +243,7 @@ pub trait QueryTrait: BaseTrait<marisa_Query> + PointerTrait<marisa_Query> {
     }
 }
 
-pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
+pub trait KeysetTrait<'a>: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
     fn push_back_key(&mut self, key: &KeyObject) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -270,7 +270,6 @@ pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
     // Rust strings are not null-terminated, so
     // void push_back(marisa::Keyset*, const char *);
     // wrapper will not be implemented
-
     fn push_back_str(&mut self, key: &str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -304,7 +303,7 @@ pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
 	}
     }
 
-    fn get(&self, i: usize) -> Result<KeyObject<'_>, MarisaError> {
+    fn get(&self, i: usize) -> Result<KeyObject<'a>, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	let key_obj = unsafe { (keyset_get)(obj, i, &mut err_record)};
@@ -320,7 +319,7 @@ pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
 	}
     }
 
-    fn put(&mut self, i: usize, mut v: KeyObject) -> Result<KeyObject<'_>, MarisaError> {
+    fn put(&mut self, i: usize, mut v: KeyObject) -> Result<KeyObject<'a>, MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	let key_obj = unsafe { (keyset_put)(obj, i, v.mut_pointer(), &mut err_record) };
@@ -420,7 +419,7 @@ pub trait KeysetTrait: BaseTrait<marisa_Keyset> + PointerTrait<marisa_Keyset> {
     }
 }
 
-pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
+pub trait AgentTrait<'a>: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
     fn query(&self) -> Result<QueryObject<'_>, MarisaError> {
 	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -449,7 +448,7 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
-    fn set_query_str(&mut self, s: &str) -> Result<() , MarisaError>
+    fn set_query_str(&mut self, s: &'a str) -> Result<() , MarisaError>
     {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
@@ -461,7 +460,7 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
-    fn set_query_str_len(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
+    fn set_query_str_len(&mut self, s: &'a str, l: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	unsafe { agent_set_query_1(obj, s.as_ptr(), l, &mut err_record) };
@@ -483,7 +482,7 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
-    fn set_key_str(&mut self, s: &str) -> Result<(), MarisaError> {
+    fn set_key_str(&mut self, s: &'a str) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	unsafe { (agent_set_key_1)(obj, s.as_ptr(), s.len(), &mut err_record) };
@@ -494,7 +493,7 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
 	}
     }
 
-    fn set_key_str_length(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
+    fn set_key_str_length(&mut self, s: &'a str, l: usize) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
 	unsafe { (agent_set_key_1)(obj, s.as_ptr(), l, &mut err_record) };
@@ -562,7 +561,7 @@ pub trait AgentTrait: BaseTrait<marisa_Agent> + PointerTrait<marisa_Agent> {
     }
 }
 
-pub trait TrieTrait: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
+pub trait TrieTrait<'a>: BaseTrait<marisa_Trie> + PointerTrait<marisa_Trie> {
     fn build(&mut self, keyset: &mut KeysetObject, config_flags: u32) -> Result<(), MarisaError> {
 	let obj = self.mut_pointer();
 	let keyset_obj = keyset.mut_pointer();
@@ -834,7 +833,7 @@ impl Drop for RawObject {
 }
 
 // Key
-impl BaseTrait<marisa_Key> for KeyObject<'_> {
+impl<'a> BaseTrait<marisa_Key> for KeyObject<'a> {
     fn new() -> Self {
 	Self {
 	    object: RawObject::Key(unsafe { (key_create)() }),
@@ -843,7 +842,7 @@ impl BaseTrait<marisa_Key> for KeyObject<'_> {
     }
 }
 
-impl PointerTrait<marisa_Key> for KeyObject<'_> {
+impl<'a> PointerTrait<marisa_Key> for KeyObject<'a> {
     fn const_pointer(&self) -> *const marisa_Key {
 	match self.object {
 	    RawObject::Key(pointer) => pointer as *const marisa_Key,
@@ -862,9 +861,9 @@ impl PointerTrait<marisa_Key> for KeyObject<'_> {
     }
 }
 
-impl KeyTrait for KeyObject<'_> {}
+impl<'a> KeyTrait<'a> for KeyObject<'a> {}
 
-impl KQTrait<marisa_Key> for KeyObject<'_> {
+impl<'a> KQTrait<'a, marisa_Key> for KeyObject<'a> {
     const FUNCS: KQFunc<marisa_Key> = KQFunc::<marisa_Key> {
 	get: key_get,
 	ptr: key_ptr,
@@ -885,16 +884,16 @@ impl Index<KeyObject<'_>> for KeyObject<'_> {
 */
 
 // Query
-impl BaseTrait<marisa_Query> for QueryObject<'_> {
+impl<'a> BaseTrait<marisa_Query> for QueryObject<'a> {
     fn new() -> Self {
 	Self {
 	    object: RawObject::Query(unsafe { (query_create)() }),
-	    _marker: PhantomData::<&marisa_Query>,
+	    _marker: PhantomData::<&'a marisa_Query>,
 	}
     }
 }
 
-impl PointerTrait<marisa_Query> for QueryObject<'_> {
+impl<'a> PointerTrait<marisa_Query> for QueryObject<'a> {
     fn const_pointer(&self) -> *const marisa_Query {
 	match self.object {
 	    RawObject::Query(pointer) => pointer as *const marisa_Query,
@@ -913,9 +912,9 @@ impl PointerTrait<marisa_Query> for QueryObject<'_> {
     }
 }
 
-impl QueryTrait for QueryObject<'_> {}
+impl<'a> QueryTrait<'a> for QueryObject<'a> {}
 
-impl KQTrait<marisa_Query> for QueryObject<'_> {
+impl<'a> KQTrait<'a, marisa_Query> for QueryObject<'a> {
     const FUNCS: KQFunc<marisa_Query> = KQFunc::<marisa_Query> {
 	get: query_get,
 	ptr: query_ptr,
@@ -927,7 +926,7 @@ impl KQTrait<marisa_Query> for QueryObject<'_> {
 }
 
 // Keyset
-impl BaseTrait<marisa_Keyset> for KeysetObject<'_> {
+impl<'a> BaseTrait<marisa_Keyset> for KeysetObject<'a> {
     fn new() -> Self {
 	Self {
 	    object: RawObject::Keyset(unsafe { (keyset_create)() }),
@@ -936,7 +935,7 @@ impl BaseTrait<marisa_Keyset> for KeysetObject<'_> {
     }
 }
 
-impl PointerTrait<marisa_Keyset> for KeysetObject<'_> {
+impl<'a> PointerTrait<marisa_Keyset> for KeysetObject<'a> {
     fn const_pointer(&self) -> *const marisa_Keyset {
 	match self.object {
 	    RawObject::Keyset(pointer) => pointer as *const marisa_Keyset,
@@ -954,10 +953,10 @@ impl PointerTrait<marisa_Keyset> for KeysetObject<'_> {
     }
 }
 
-impl KeysetTrait for KeysetObject<'_> {}
+impl<'a> KeysetTrait<'a> for KeysetObject<'a> {}
 
 // Agent
-impl BaseTrait<marisa_Agent> for AgentObject<'_> {
+impl<'a> BaseTrait<marisa_Agent> for AgentObject<'a> {
     fn new() -> Self {
 	Self {
 	    object: RawObject::Agent(unsafe { (agent_create)() }),
@@ -966,7 +965,7 @@ impl BaseTrait<marisa_Agent> for AgentObject<'_> {
     }
 }
 
-impl PointerTrait<marisa_Agent> for AgentObject<'_> {
+impl<'a> PointerTrait<marisa_Agent> for AgentObject<'a> {
     fn const_pointer(&self) -> *const marisa_Agent {
 	match self.object {
 	    RawObject::Agent(pointer) => pointer as *const marisa_Agent,
@@ -984,10 +983,10 @@ impl PointerTrait<marisa_Agent> for AgentObject<'_> {
     }
 }
 
-impl<'a> AgentTrait for AgentObject<'a> { }
+impl<'a> AgentTrait<'a> for AgentObject<'a> { }
 
 // Trie
-impl BaseTrait<marisa_Trie> for TrieObject<'_> {
+impl<'a> BaseTrait<marisa_Trie> for TrieObject<'a> {
     fn new() -> Self {
 	Self {
 	    object: RawObject::Trie(unsafe { (trie_create)() }),
@@ -996,7 +995,7 @@ impl BaseTrait<marisa_Trie> for TrieObject<'_> {
     }
 }
 
-impl PointerTrait<marisa_Trie> for TrieObject<'_> {
+impl<'a> PointerTrait<marisa_Trie> for TrieObject<'a> {
     fn const_pointer(&self) -> *const marisa_Trie {
 	match self.object {
 	    RawObject::Trie(pointer) => pointer as *const marisa_Trie,
@@ -1014,4 +1013,4 @@ impl PointerTrait<marisa_Trie> for TrieObject<'_> {
     }
 }
 
-impl TrieTrait for TrieObject<'_> {}
+impl<'a> TrieTrait<'a> for TrieObject<'a> {}
