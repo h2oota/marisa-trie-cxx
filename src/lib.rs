@@ -7,7 +7,7 @@ pub const BUILD_MODE: &str = "vendored";
 
 // ===== Public modules =====
 
-mod marisa;
+mod ffi;
 
 // ===== Re-exports (public API surface) =====
 
@@ -18,14 +18,21 @@ pub use marisa:: {
     AgentObject as Agent,
     TrieObject as Trie,
 
-    BaseTrait,
-    KQTrait,
+    KeyRef,
+    QueryRef,
+    KeysetRef,
+    AgentRef,
+    TrieRef,
+
+
+//    KeyQueryTrait,
+/*
     KeyTrait,
     QueryTrait,
     KeysetTrait,
     AgentTrait,
     TrieTrait,
-
+*/
     MarisaError,
 
 

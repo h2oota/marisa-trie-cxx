@@ -350,7 +350,7 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
         .allowlist_function("(?:key|query|keyset|agent|trie)_[A-Za-z0-9_]+")
         .allowlist_function("exception_(?:name|message)")
         .allowlist_type("marisa_num_tries|marisa_cache_level|marisa_tail_mode|marisa_node_order|marisa_config_mask")
-	.opaque_type("marisa::.*")
+//	.opaque_type("marisa::.*")
         .disable_functions(disable_in_release)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
 //        .no_copy(true)

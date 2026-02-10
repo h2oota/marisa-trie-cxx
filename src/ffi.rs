@@ -30,6 +30,8 @@ pub use marisa_wrapper::marisa_config_mask_MARISA_NODE_ORDER_MASK as MARISA_NODE
 pub use marisa_wrapper::marisa_config_mask_MARISA_CONFIG_MASK as MARISA_CONFIG_MASK;
 pub use marisa_wrapper::marisa_TailMode as TailMode;
 pub use marisa_wrapper::marisa_NodeOrder as NodeOrder;
+pub use marisa_wrapper::{exception_record, exception_name, exception_message};
+
 
 
 /*
@@ -60,20 +62,47 @@ impl std::fmt::Display for MarisaError {
 
 impl std::error::Error for MarisaError {}
 
+pub trait MarisaException {
+    fn from_exception(err_record: *const exception_record) -> Self;
+}
+
+impl MarisaException for MarisaError {
+    fn from_exception(err_record: *const exception_record) -> Self
+    {
+	unsafe {
+	    Self {
+		source: std::ffi::CStr::from_ptr(exception_name(err_record)).to_string_lossy().into_owned(),
+		message: std::ffi::CStr::from_ptr(exception_message(err_record)).to_string_lossy().into_owned()
+	    }
+	}
+    }
+}
+
+
 pub use object::{
+
     KeyObject,
     QueryObject,
     KeysetObject,
     AgentObject,
     TrieObject,
 
-    BaseTrait,
-    KQTrait,
+    KeyRef,
+    QueryRef,
+    KeysetRef,
+    AgentRef,
+    TrieRef,
+
+
+//    KeyQueryTrait,
+
+/*
     KeyTrait,
     QueryTrait,
     KeysetTrait,
     AgentTrait,
     TrieTrait,
+*/
 };
 
 
