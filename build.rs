@@ -299,8 +299,8 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
 
 
     let src_files = combine_paths(
-	"src/marisa",
-	vec!["agent.cpp", "key.cpp", "keyset.cpp", "query.cpp", "trie.cpp", "except.cpp"]);
+	"src/ffi",
+	vec!["agent.cxx", "key.cxx", "keyset.cxx", "query.cxx", "trie.cxx", "except.cxx"]);
 
     cc::Build::new()
         .cpp(true)                  // C++を有効にする
@@ -309,7 +309,7 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
 	.flag("-fno-inline-functions")
 	.flag("-std=c++17")
 	.pic(true)
-        .compile("marisa_wrapper");         // libmarisa_wrapper.a
+        .compile("ffi");         // libmarisa_wrapper.a
 
 
     let out_dir = env::var("OUT_DIR").unwrap();
@@ -346,7 +346,7 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
 				   None => format!("-D{}", key),
 			       }))
 		   .collect::<Vec<String>>())
-        .header("src/marisa/marisa-wrapper.hpp")
+        .header("src/ffi/ffi.hxx")
         .allowlist_function("(?:key|query|keyset|agent|trie)_[A-Za-z0-9_]+")
         .allowlist_function("exception_(?:name|message)")
         .allowlist_type("marisa_num_tries|marisa_cache_level|marisa_tail_mode|marisa_node_order|marisa_config_mask")
@@ -371,7 +371,7 @@ const _ : (usize_int, cint, cuint, cchar, cuchar, cfloat, cdouble) = (0, 0, 0, 0
 
     println!("cargo:rustc-link-lib=marisa");
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=src/marisa/marisa-wrapper.hpp");
+    println!("cargo:rerun-if-changed=src/ffi/ffi.hxx");
 
     for file in src_files.into_iter() {
 	println!("cargo:rerun-if-changed={}", file);

@@ -6,8 +6,7 @@ use std::ptr;
 use std::marker::PhantomData;
 use std::ops::Index;
 
-use super::*;
-use marisa_wrapper::*;
+use crate::ffi::*;
 
 /// marisa-trieオブジェクトをラップする。オブジェクトに対する操作はこの構造体に実装する。
 /// Wraps a marisa-trie object. Operations on the object are implemented in this structure.

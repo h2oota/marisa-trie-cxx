@@ -1,18 +1,18 @@
 #include <marisa/trie.h>
-#include "marisa-wrapper.hpp"
-#include "except.hpp"
+#include "ffi.hxx"
+#include "except.hxx"
 
-Key* key_create()
+marisa_Key* key_create()
 {
-     return reinterpret_cast<Key*>(new marisa::Key());
+     return reinterpret_cast<marisa_Key*>(new marisa::Key());
 }
 
-void key_destroy(Key* key)
+void key_destroy(marisa_Key* key)
 {
      delete reinterpret_cast<marisa::Key*>(key);
 }
 
-unsigned char key_index(const Key* key, std::size_t i, const struct exception_record ** exception)
+unsigned char key_index(const marisa_Key* key, std::size_t i, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -23,7 +23,7 @@ unsigned char key_index(const Key* key, std::size_t i, const struct exception_re
      return 0;
 }
 
-const unsigned char *key_ptr(const Key* key, const struct exception_record ** exception)
+const unsigned char *key_ptr(const marisa_Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -34,7 +34,7 @@ const unsigned char *key_ptr(const Key* key, const struct exception_record ** ex
      return nullptr;
 }
 
-std::size_t key_length(const Key* key, const struct exception_record ** exception)
+std::size_t key_length(const marisa_Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -45,7 +45,7 @@ std::size_t key_length(const Key* key, const struct exception_record ** exceptio
      return 0;
 }
 
-std::size_t key_id(const Key* key, const struct exception_record ** exception)
+std::size_t key_id(const marisa_Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -56,7 +56,7 @@ std::size_t key_id(const Key* key, const struct exception_record ** exception)
      return 0;
 }
 
-float key_weight(const Key* key, const struct exception_record ** exception)
+float key_weight(const marisa_Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -67,7 +67,7 @@ float key_weight(const Key* key, const struct exception_record ** exception)
      return 0;
 }
 
-void key_set_str(Key *key, const char *ptr, size_t length, const struct exception_record ** exception)
+void key_set_str(marisa_Key *key, const char *ptr, size_t length, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -77,7 +77,7 @@ void key_set_str(Key *key, const char *ptr, size_t length, const struct exceptio
      }
 }
 
-void key_set_id(marisa::Key *key, size_t id, const struct exception_record ** exception)
+void key_set_id(marisa_Key *key, size_t id, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -87,7 +87,7 @@ void key_set_id(marisa::Key *key, size_t id, const struct exception_record ** ex
      }
 }
 
-void key_set_weight(marisa::Key *key, float weight, const struct exception_record ** exception)
+void key_set_weight(marisa_Key *key, float weight, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {

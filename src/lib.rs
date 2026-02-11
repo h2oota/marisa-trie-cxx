@@ -7,35 +7,20 @@ pub const BUILD_MODE: &str = "vendored";
 
 // ===== Public modules =====
 
+mod marisa;
+
+#[allow(dead_code)]
+#[allow(non_upper_case_globals)]
+#[allow(non_camel_case_types)]
 mod ffi;
+
+#[allow(non_camel_case_types)]
+mod utils;
 
 // ===== Re-exports (public API surface) =====
 
-pub use marisa:: {
-    KeyObject as Key,
-    QueryObject as Query,
-    KeysetObject as Keyset,
-    AgentObject as Agent,
-    TrieObject as Trie,
 
-    KeyRef,
-    QueryRef,
-    KeysetRef,
-    AgentRef,
-    TrieRef,
-
-
-//    KeyQueryTrait,
-/*
-    KeyTrait,
-    QueryTrait,
-    KeysetTrait,
-    AgentTrait,
-    TrieTrait,
-*/
-    MarisaError,
-
-
+pub use ffi::{
     MARISA_MIN_NUM_TRIES,
     MARISA_MAX_NUM_TRIES,
     MARISA_DEFAULT_NUM_TRIES,
@@ -58,4 +43,31 @@ pub use marisa:: {
     MARISA_CONFIG_MASK,
     TailMode,
     NodeOrder,
+};
+
+pub use marisa:: {
+    // KeyObject as Key,
+    // QueryObject as Query,
+    // KeysetObject as Keyset,
+    // AgentObject as Agent,
+    // TrieObject as Trie,
+
+    // KeyRef,
+    // QueryRef,
+    // KeysetRef,
+    // AgentRef,
+    // TrieRef,
+
+
+//    KeyQueryTrait,
+/*
+    KeyTrait,
+    QueryTrait,
+    KeysetTrait,
+    AgentTrait,
+    TrieTrait,
+*/
+    MarisaError,
+
+
 };

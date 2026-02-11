@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include <system_error>
-#include "except.hpp"
+#include "except.hxx"
 
 
 static thread_local exception_record ex_record;

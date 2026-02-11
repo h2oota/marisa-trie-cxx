@@ -1,21 +1,21 @@
 #include <marisa/trie.h>
-#include "marisa-wrapper.hpp"
-#include "except.hpp"
+#include "ffi.hxx"
+#include "except.hxx"
 
 
-Trie* trie_create()
+marisa_Trie* trie_create()
 {
-     return reinterpret_cast<Trie*>(new marisa::Trie());
+     return reinterpret_cast<marisa_Trie*>(new marisa::Trie());
 }
 
 
-void trie_destroy(marisa::Trie* trie)
+void trie_destroy(marisa_Trie* trie)
 {
      delete reinterpret_cast<marisa::Trie*>(trie);
 }
 
 
-void trie_build(Trie* trie, Keyset& keyset , int config_flag, const struct exception_record ** exception)
+void trie_build(marisa_Trie* trie, marisa_Keyset& keyset , int config_flag, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -26,7 +26,7 @@ void trie_build(Trie* trie, Keyset& keyset , int config_flag, const struct excep
      }
 }
 
-void trie_mmap(Trie* trie, const unsigned char *filename, const struct exception_record ** exception)
+void trie_mmap(marisa_Trie* trie, const unsigned char *filename, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -36,7 +36,7 @@ void trie_mmap(Trie* trie, const unsigned char *filename, const struct exception
      }
 }
 
-void trie_map(Trie* trie, const void *ptr, std::size_t size, const struct exception_record ** exception)
+void trie_map(marisa_Trie* trie, const void *ptr, std::size_t size, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -46,7 +46,7 @@ void trie_map(Trie* trie, const void *ptr, std::size_t size, const struct except
      }
 }
 
-void trie_load(Trie* trie, const unsigned char* filename, const struct exception_record ** exception)
+void trie_load(marisa_Trie* trie, const unsigned char* filename, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -56,7 +56,7 @@ void trie_load(Trie* trie, const unsigned char* filename, const struct exception
      }
 }
 
-void trie_read(Trie* trie, const int fd, const struct exception_record ** exception)
+void trie_read(marisa_Trie* trie, const int fd, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -67,7 +67,7 @@ void trie_read(Trie* trie, const int fd, const struct exception_record ** except
 }
 
 
-void trie_save(const Trie* trie, const unsigned char* filename, const struct exception_record ** exception)
+void trie_save(const marisa_Trie* trie, const unsigned char* filename, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -77,7 +77,7 @@ void trie_save(const Trie* trie, const unsigned char* filename, const struct exc
      }
 }
 
-void trie_write(const Trie* trie, const int fd, const struct exception_record ** exception)
+void trie_write(const marisa_Trie* trie, const int fd, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -88,7 +88,7 @@ void trie_write(const Trie* trie, const int fd, const struct exception_record **
 }
 
 
-bool trie_lookup(const Trie* trie, Agent& agent, const struct exception_record ** exception)
+bool trie_lookup(const marisa_Trie* trie, marisa_Agent& agent, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -100,7 +100,7 @@ bool trie_lookup(const Trie* trie, Agent& agent, const struct exception_record *
 }
 
 
-void trie_reverse_lookup(const Trie* trie, Agent& agent, const struct exception_record ** exception)
+void trie_reverse_lookup(const marisa_Trie* trie, marisa_Agent& agent, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -111,7 +111,7 @@ void trie_reverse_lookup(const Trie* trie, Agent& agent, const struct exception_
 }
 
 
-bool trie_common_prefix_search(const Trie* trie, Agent& agent, const struct exception_record ** exception)
+bool trie_common_prefix_search(const marisa_Trie* trie, marisa_Agent& agent, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -122,7 +122,7 @@ bool trie_common_prefix_search(const Trie* trie, Agent& agent, const struct exce
      return false; // dummy, shoult not evaluate
 }
 
-bool trie_predictive_search(const Trie* trie, Agent& agent, const struct exception_record ** exception)
+bool trie_predictive_search(const marisa_Trie* trie, marisa_Agent& agent, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -133,7 +133,7 @@ bool trie_predictive_search(const Trie* trie, Agent& agent, const struct excepti
      return false; // dummy, shoult not evaluate
 }
 
-std::size_t trie_num_tries(const Trie* trie, const struct exception_record ** exception)
+std::size_t trie_num_tries(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -144,7 +144,7 @@ std::size_t trie_num_tries(const Trie* trie, const struct exception_record ** ex
      return 0; // dummy, shoult not evaluate
 }
 
-std::size_t trie_num_keys(const Trie* trie, const struct exception_record ** exception)
+std::size_t trie_num_keys(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -155,7 +155,7 @@ std::size_t trie_num_keys(const Trie* trie, const struct exception_record ** exc
      return 0; // dummy, shoult not evaluate
 }
 
-std::size_t trie_num_nodes(const Trie* trie, const struct exception_record ** exception)
+std::size_t trie_num_nodes(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -167,7 +167,7 @@ std::size_t trie_num_nodes(const Trie* trie, const struct exception_record ** ex
 }
 
 
-marisa::TailMode trie_tail_mode(const Trie* trie, const struct exception_record ** exception)
+marisa::TailMode trie_tail_mode(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -178,7 +178,7 @@ marisa::TailMode trie_tail_mode(const Trie* trie, const struct exception_record 
      return MARISA_TEXT_TAIL;
 }
 
-marisa::NodeOrder trie_node_order(const Trie* trie, const struct exception_record ** exception)
+marisa::NodeOrder trie_node_order(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -189,7 +189,7 @@ marisa::NodeOrder trie_node_order(const Trie* trie, const struct exception_recor
      return MARISA_WEIGHT_ORDER;
 }
 
-bool trie_empty(const Trie* trie, const struct exception_record ** exception)
+bool trie_empty(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -200,7 +200,7 @@ bool trie_empty(const Trie* trie, const struct exception_record ** exception)
      return true;
 }
 
-std::size_t trie_size(const Trie* trie, const struct exception_record ** exception)
+std::size_t trie_size(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -211,7 +211,7 @@ std::size_t trie_size(const Trie* trie, const struct exception_record ** excepti
      return 0;
 }
 
-std::size_t trie_total_size(const Trie* trie, const struct exception_record ** exception)
+std::size_t trie_total_size(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -222,7 +222,7 @@ std::size_t trie_total_size(const Trie* trie, const struct exception_record ** e
      return 0;
 }
 
-std::size_t trie_io_size(const Trie* trie, const struct exception_record ** exception)
+std::size_t trie_io_size(const marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -234,7 +234,7 @@ std::size_t trie_io_size(const Trie* trie, const struct exception_record ** exce
 }
 
 
-void trie_clear(Trie* trie, const struct exception_record ** exception)
+void trie_clear(marisa_Trie* trie, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -244,7 +244,7 @@ void trie_clear(Trie* trie, const struct exception_record ** exception)
      }
 }
 
-void trie_swap(Trie* trie, Trie& rhs, const struct exception_record ** exception)
+void trie_swap(marisa_Trie* trie, marisa_Trie& rhs, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {

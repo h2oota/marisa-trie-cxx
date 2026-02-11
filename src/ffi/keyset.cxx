@@ -1,19 +1,19 @@
 #include <marisa/trie.h>
-#include "marisa-wrapper.hpp"
-#include "except.hpp"
+#include "ffi.hxx"
+#include "except.hxx"
 
 
-Keyset* keyset_create()
+marisa_Keyset* keyset_create()
 {
-     return reinterpret_cast<Keyset*>(new marisa::Keyset());
+     return reinterpret_cast<marisa_Keyset*>(new marisa::Keyset());
 }
 
-void keyset_destroy(Keyset* keyset)
+void keyset_destroy(marisa_Keyset* keyset)
 {
      delete reinterpret_cast<marisa::Keyset*>(keyset);
 }
 
-void keyset_push_back_0(Keyset* keyset, const Key& key, const struct exception_record ** exception)
+void keyset_push_back_0(marisa_Keyset* keyset, const marisa_Key& key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -23,7 +23,7 @@ void keyset_push_back_0(Keyset* keyset, const Key& key, const struct exception_r
      }
 }
 
-void keyset_push_back_1(Keyset* keyset, const Key& key, unsigned char end_marker, const struct exception_record ** exception)
+void keyset_push_back_1(marisa_Keyset* keyset, const marisa_Key& key, unsigned char end_marker, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -33,7 +33,7 @@ void keyset_push_back_1(Keyset* keyset, const Key& key, unsigned char end_marker
      }
 }
 
-void keyset_push_back_2(Keyset* keyset, const unsigned char* str, const struct exception_record ** exception)
+void keyset_push_back_2(marisa_Keyset* keyset, const unsigned char* str, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -43,7 +43,7 @@ void keyset_push_back_2(Keyset* keyset, const unsigned char* str, const struct e
      }
 }
 
-void keyset_push_back_3(Keyset* keyset, const unsigned char* ptr, std::size_t length, const struct exception_record ** exception)
+void keyset_push_back_3(marisa_Keyset* keyset, const unsigned char* ptr, std::size_t length, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -53,7 +53,7 @@ void keyset_push_back_3(Keyset* keyset, const unsigned char* ptr, std::size_t le
      }
 }
 
-void keyset_push_back_4(Keyset* keyset, const unsigned char* ptr, std::size_t length, float weight, const struct exception_record ** exception)
+void keyset_push_back_4(marisa_Keyset* keyset, const unsigned char* ptr, std::size_t length, float weight, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -63,18 +63,18 @@ void keyset_push_back_4(Keyset* keyset, const unsigned char* ptr, std::size_t le
      }
 }
 
-const Key* keyset_get(const Keyset* keyset, std::size_t i, const struct exception_record ** exception)
+const marisa_Key* keyset_get(const marisa_Keyset* keyset, std::size_t i, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  return reinterpret_cast<const Key*>(&(*reinterpret_cast<const marisa::Keyset*>(keyset))[i]);
+	  return reinterpret_cast<const marisa_Key*>(&(*reinterpret_cast<const marisa::Keyset*>(keyset))[i]);
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
      return nullptr;
 }
 
-std::size_t keyset_num_keys(const Keyset* keyset, const struct exception_record ** exception)
+std::size_t keyset_num_keys(const marisa_Keyset* keyset, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -85,7 +85,7 @@ std::size_t keyset_num_keys(const Keyset* keyset, const struct exception_record 
      return 0; // dummy, shoult not evaluate
 }
 
-bool keyset_empty(const Keyset* keyset, const struct exception_record ** exception)
+bool keyset_empty(const marisa_Keyset* keyset, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -96,7 +96,7 @@ bool keyset_empty(const Keyset* keyset, const struct exception_record ** excepti
      return true; // dummy, shoult not evaluate
 }
 
-std::size_t keyset_size(const Keyset* keyset, const struct exception_record ** exception)
+std::size_t keyset_size(const marisa_Keyset* keyset, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -107,7 +107,7 @@ std::size_t keyset_size(const Keyset* keyset, const struct exception_record ** e
      return 0;
 }
 
-std::size_t keyset_total_length(const Keyset* keyset, const struct exception_record ** exception)
+std::size_t keyset_total_length(const marisa_Keyset* keyset, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -118,7 +118,7 @@ std::size_t keyset_total_length(const Keyset* keyset, const struct exception_rec
      return 0;
 }
 
-void keyset_reset(Keyset* keyset, const struct exception_record ** exception)
+void keyset_reset(marisa_Keyset* keyset, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -128,7 +128,7 @@ void keyset_reset(Keyset* keyset, const struct exception_record ** exception)
      }
 }
 
-void keyset_clear(Keyset* keyset, const struct exception_record ** exception)
+void keyset_clear(marisa_Keyset* keyset, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -138,7 +138,7 @@ void keyset_clear(Keyset* keyset, const struct exception_record ** exception)
      }
 }
 
-void keyset_swap(Keyset* keyset, marisa::Keyset& rhs, const struct exception_record ** exception)
+void keyset_swap(marisa_Keyset* keyset, marisa_Keyset& rhs, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
