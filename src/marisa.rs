@@ -2,36 +2,33 @@
 
 
 mod object;
+mod error;
 
-#[derive(Debug)]
-pub struct MarisaError {
-    source: String,
-    message: String
-}
+pub use crate::ffi::{
+    MARISA_MIN_NUM_TRIES,
+    MARISA_MAX_NUM_TRIES,
+    MARISA_DEFAULT_NUM_TRIES,
+    MARISA_HUGE_CACHE,
+    MARISA_LARGE_CACHE,
+    MARISA_NORMAL_CACHE,
+    MARISA_SMALL_CACHE,
+    MARISA_TINY_CACHE,
+    MARISA_DEFAULT_CACHE,
+    MARISA_TEXT_TAIL,
+    MARISA_BINARY_TAIL,
+    MARISA_DEFAULT_TAIL,
+    MARISA_LABEL_ORDER,
+    MARISA_WEIGHT_ORDER,
+    MARISA_DEFAULT_ORDER,
+    MARISA_NUM_TRIES_MASK,
+    MARISA_CACHE_LEVEL_MASK,
+    MARISA_TAIL_MODE_MASK,
+    MARISA_NODE_ORDER_MASK,
+    MARISA_CONFIG_MASK,
+    TailMode,
+    NodeOrder,
+};
 
-impl std::fmt::Display for MarisaError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}:{}", &self.source, &self.message)
-    }
-}
-
-impl std::error::Error for MarisaError {}
-
-pub trait MarisaException {
-    fn from_exception(err_record: *const exception_record) -> Self;
-}
-
-impl MarisaException for MarisaError {
-    fn from_exception(err_record: *const exception_record) -> Self
-    {
-	unsafe {
-	    Self {
-		source: std::ffi::CStr::from_ptr(exception_name(err_record)).to_string_lossy().into_owned(),
-		message: std::ffi::CStr::from_ptr(exception_message(err_record)).to_string_lossy().into_owned()
-	    }
-	}
-    }
-}
 
 
 pub use object::{

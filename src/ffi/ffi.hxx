@@ -8,6 +8,12 @@
 
 #include <marisa/trie.h>
 
+namespace marisa {
+     struct Test {
+	  int a, b;
+     };
+}
+
 extern "C" {
 //     typedef marisa::TailMode marisa_TailMode;
 //     typedef marisa::NodeOrder marisa_NodeOrder;
