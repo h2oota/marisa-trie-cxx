@@ -10,6 +10,9 @@ use crate::utils;
 
 use crate::ffi::*;
 use crate::ffi::marisa_trie::{
+    marisa_NodeOrder,
+    marisa_TailMode,
+
     marisa_Key,
     marisa_Query,
     marisa_Keyset,
@@ -109,7 +112,44 @@ pub trait KeyQueryRawFuncs<T> {
     const FN_SET_ID: unsafe extern "C" fn(*mut T, id: usize, *mut *const exception_record);
 }
 
-pub trait KeyQueryTrait<T>: KeyQueryRawFuncs<T>
+pub trait KeyQueryTrait<T>
+{
+    fn get_ptr_length(&self) ->	Result<(*const utils::cuchar, usize), MarisaError>;
+    fn str(&self) -> Result<&str, MarisaError>;
+    fn bin(&self) -> Result<&[u8], MarisaError>;
+    fn ptr(&self) -> Result<*const u8, MarisaError>;
+    fn id(&self) -> Result<usize, MarisaError>;
+    fn length(&self) -> Result<usize, MarisaError>;
+}
+
+
+pub trait KeyQueryMutTrait<T>
+{
+    fn set_str(&mut self, str: &str) -> Result<(), MarisaError>;
+    fn set_str_length(&mut self, str: &str, length: usize) -> Result<(), MarisaError>;
+    fn set_id(&mut self, id: usize) -> Result<(), MarisaError>;
+}
+
+
+impl KeyQueryRawFuncs<marisa_Key> for marisa_Key {
+    const FN_PTR: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> *const utils::cuchar = key_ptr;
+    const FN_LENGTH: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> usize = key_length;
+    const FN_ID: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> usize = key_id;
+    const FN_SET_STR: unsafe extern "C" fn(*mut marisa_Key, *const c_char, length: usize, *mut *const exception_record) = key_set_str;
+    const FN_SET_ID: unsafe extern "C" fn(*mut marisa_Key, id: usize, *mut *const exception_record) = key_set_id;
+}
+
+
+impl KeyQueryRawFuncs<marisa_Query> for marisa_Query {
+    const FN_PTR: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> *const utils::cuchar = query_ptr;
+    const FN_LENGTH: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> usize = query_length;
+    const FN_ID: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> usize = query_id;
+    const FN_SET_STR: unsafe extern "C" fn(*mut marisa_Query, *const c_char, length: usize, *mut *const exception_record) = query_set_str;
+    const FN_SET_ID: unsafe extern "C" fn(*mut marisa_Query, id: usize, *mut *const exception_record) = query_set_id;
+}
+
+
+impl<T: KeyQueryRawFuncs<T>> KeyQueryTrait<T> for T
 {
     fn get_ptr_length(&self) ->	Result<(*const utils::cuchar, usize), MarisaError>
     {
@@ -199,7 +239,8 @@ pub trait KeyQueryTrait<T>: KeyQueryRawFuncs<T>
     }
 }
 
-pub trait KeyQueryMutTrait<T>: KeyQueryRawFuncs<T> {
+impl<T: KeyQueryRawFuncs<T>> KeyQueryMutTrait<T> for T
+{
 
 //    #[cfg(not(release))]
     fn set_str(&mut self, str: &str) -> Result<(), MarisaError> {
@@ -235,36 +276,32 @@ pub trait KeyQueryMutTrait<T>: KeyQueryRawFuncs<T> {
     }
 }
 
-impl KeyQueryRawFuncs<marisa_Key> for marisa_Key {
-    const FN_PTR: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> *const utils::cuchar = key_ptr;
-    const FN_LENGTH: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> usize = key_length;
-    const FN_ID: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> usize = key_id;
-    const FN_SET_STR: unsafe extern "C" fn(*mut marisa_Key, *const c_char, length: usize, *mut *const exception_record) = key_set_str;
-    const FN_SET_ID: unsafe extern "C" fn(*mut marisa_Key, id: usize, *mut *const exception_record) = key_set_id;
+
+pub trait KeysetTrait {
+    fn num_keys(&self) -> Result<usize, MarisaError>;
+    fn empty(&self) -> Result<bool, MarisaError>;
+    fn size(&self) -> Result<usize, MarisaError>;
+    fn total_length(&self) -> Result<usize, MarisaError>;
 }
 
 
-impl KeyQueryRawFuncs<marisa_Query> for marisa_Query {
-    const FN_PTR: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> *const utils::cuchar = query_ptr;
-    const FN_LENGTH: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> usize = query_length;
-    const FN_ID: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> usize = query_id;
-    const FN_SET_STR: unsafe extern "C" fn(*mut marisa_Query, *const c_char, length: usize, *mut *const exception_record) = query_set_str;
-    const FN_SET_ID: unsafe extern "C" fn(*mut marisa_Query, id: usize, *mut *const exception_record) = query_set_id;
+pub trait KeysetMutTrait<K>
+{
+    fn push_back_key(&mut self, key: &K) -> Result<(), MarisaError>;
+    fn push_back_key_em(&mut self, key: &K, end_marker: char) -> Result<(), MarisaError>;
+    fn push_back_str(&mut self, key: &str) -> Result<(), MarisaError>;
+    fn push_back_str_weight(&mut self, key: &str, weight: utils::cfloat) -> Result<(), MarisaError>;
+    fn push_back_bin_weight(&mut self, key: &[u8], weight: utils::cfloat) -> Result<(), MarisaError>;
+    fn reset(&mut self) -> Result<(), MarisaError>;
+    fn clear(&mut self) -> Result<(), MarisaError>;
+    fn swap(&mut self, rhs: Self) -> Result<(), MarisaError>;
 }
 
-
-/*
-pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
-    fn index(&self, i: usize) -> Result<RawObjectPtr<marisa_Key>, MarisaError>
-    {
-	let mut err_record: *const exception_record = ptr::null();
-	let key_ptr = unsafe { (agent_key)(self.get_ptr(), &mut err_record) };
-
-    }
-
+impl KeysetTrait for marisa_Keyset
+{
     fn num_keys(&self) -> Result<usize, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { keyset_num_keys(self.get_ptr(), &mut err_record) };
+	let value = unsafe { keyset_num_keys(self as *const Self as *const marisa_Keyset, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
@@ -274,7 +311,7 @@ pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 
     fn empty(&self) -> Result<bool, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { keyset_empty(self.get_ptr(), &mut err_record) };
+	let value = unsafe { keyset_empty(self as *const Self as *const marisa_Keyset, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
@@ -284,7 +321,7 @@ pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 
     fn size(&self) -> Result<usize, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { keyset_size(self.get_ptr(), &mut err_record) };
+	let value = unsafe { keyset_size(self as *const Self as *const marisa_Keyset, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
@@ -294,7 +331,7 @@ pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 
     fn total_length(&self) -> Result<usize, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { keyset_total_length(self.get_ptr(), &mut err_record) };
+	let value = unsafe { keyset_total_length(self as *const Self as *const marisa_Keyset, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
@@ -302,12 +339,13 @@ pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 	}
     }
 }
-*/
-/*
-pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
-    fn push_back_key(&mut self, key: &KeyObject) -> Result<(), MarisaError> {
+
+
+impl KeysetMutTrait<marisa_Key> for marisa_Keyset
+{
+    fn push_back_key(&mut self, key: &marisa_Key) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe {(keyset_push_back_0)(self.get_mut_ptr(), key.const_pointer(), &mut err_record) }
+	unsafe {(keyset_push_back_0)(self as *mut Self as *mut marisa_Keyset, key, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -315,10 +353,9 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 	}
     }
 
-    fn push_back_key_em(&mut self, key: &KeyObject, end_marker: char) -> Result<(), MarisaError> {
+    fn push_back_key_em(&mut self, key: &marisa_Key, end_marker: char) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe {(keyset_push_back_1)(
-	    self.get_mut_ptr(), key.const_pointer(), end_marker as utils::cuchar, &mut err_record) }
+	unsafe {(keyset_push_back_1)(self as *mut Self as *mut marisa_Keyset, key, end_marker as utils::cuchar, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -331,7 +368,7 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
     // wrapper will not be implemented
     fn push_back_str(&mut self, key: &str) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe {(keyset_push_back_3)(self.get_mut_ptr(), key.as_ptr(), key.len(), &mut err_record) }
+	unsafe {(keyset_push_back_3)(self as *mut Self as *mut marisa_Keyset, key.as_ptr(), key.len(), &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -341,7 +378,7 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 
     fn push_back_str_weight(&mut self, key: &str, weight: utils::cfloat) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe {(keyset_push_back_4)(self.get_mut_ptr(), key.as_ptr(), key.len(), weight, &mut err_record) }
+	unsafe {(keyset_push_back_4)(self as *mut Self as *mut marisa_Keyset, key.as_ptr(), key.len(), weight, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -351,7 +388,7 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 
     fn push_back_bin_weight(&mut self, key: &[u8], weight: utils::cfloat) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe {(keyset_push_back_4)(self.get_mut_ptr(), key.as_ptr(), key.len(), weight, &mut err_record) }
+	unsafe {(keyset_push_back_4)(self as *mut Self as *mut marisa_Keyset, key.as_ptr(), key.len(), weight, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -361,7 +398,7 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 
     fn reset(&mut self) -> Result<(), MarisaError>  {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (keyset_reset)(self.get_mut_ptr(), &mut err_record) }
+	unsafe { (keyset_reset)(self as *mut Self as *mut marisa_Keyset, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -371,7 +408,7 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 
     fn clear(&mut self) -> Result<(), MarisaError>  {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (keyset_clear)(self.get_mut_ptr(), &mut err_record) }
+	unsafe { (keyset_clear)(self as *mut Self as *mut marisa_Keyset, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -379,10 +416,10 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 	}
     }
 
-    fn swap(&mut self, mut rhs: KeysetObject) -> Result<(), MarisaError>  {
+    fn swap(&mut self, mut rhs: Self) -> Result<(), MarisaError>  {
 	let mut err_record: *const exception_record = ptr::null();
-	let rhs_obj = rhs.mut_pointer();
-	unsafe { (keyset_swap)(self.get_mut_ptr(), rhs_obj, &mut err_record) }
+	unsafe { (keyset_swap)(self as *mut Self as *mut marisa_Keyset,
+			       &mut rhs as *mut Self as *mut marisa_Keyset, &mut err_record) }
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -390,7 +427,7 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 	}
     }
 }
-*/
+
 /*
 impl std::ops::Index<usize> for RawObjectMutPtr<marisa_Keyset> {
 }
@@ -399,142 +436,405 @@ impl std::ops::Index<usize> for RawObjectMutPtr<marisa_Keyset> {
 //pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 //pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 
-/*
-pub trait AgentTrait0: RawObjectPtr<marisa_Agent> {
-    fn query(&self) -> Result<RawObjectPtr<marisa_Query>, MarisaError> {
+pub trait AgentTrait<K, Q>
+{
+    fn query(&self) -> Result<Q, MarisaError>;
+    fn key(&self) -> Result<K, MarisaError>;
+    fn has_state(&self) -> Result<bool, MarisaError>;
+}
+
+
+impl AgentTrait<*const marisa_Key, *const marisa_Query> for marisa_Agent
+{
+    fn query(&self) -> Result<*const marisa_Query, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let query_ptr = unsafe { (agent_query)(self.get_ptr(), &mut err_record) };
 	if err_record.is_null() {
-	    Ok(RawObjectPtr::<marisa_Query>::from_ptr(query_ptr))
+	    Ok(unsafe { (agent_query)(self as *const Self as *const marisa_Agent, &mut err_record) })
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
-    fn key(&self) -> Result<KeyObject<'_>, MarisaError> {
-	let obj = self.const_pointer();
+    fn key(&self) -> Result<*const marisa_Key, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let key_ptr = unsafe { (agent_key)(obj, &mut err_record) };
 	if err_record.is_null() {
-	    Ok(RawObjectPtr::<marisa_Key>::from_ptr(key_ptr))
+	    Ok(unsafe { (agent_key)(self as *const Self as *const marisa_Agent, &mut err_record) })
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn has_state(&self) -> Result<bool, MarisaError> {
-	let obj = self.const_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { (agent_has_state)(obj, &mut err_record) };
+	let value = unsafe { (agent_has_state)(self as *const Self as *const marisa_Agent, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 }
-*/
 
-/*
-pub trait AgentTrait1: RawObjectPtr<marisa_Agent> {
+pub trait AgentMutTrait
+{
+    fn set_query_str(&mut self, s: &str) -> Result<() , MarisaError>;
+    fn set_query_str_len(&mut self, s: &str, l: usize) -> Result<(), MarisaError>;
+    fn set_query_id(&mut self, id: usize) -> Result<(), MarisaError>;
+    fn set_key_str(&mut self, s: &str) -> Result<(), MarisaError>;
+    fn set_key_str_length(&mut self, s: &str, l: usize) -> Result<(), MarisaError>;
+    fn set_key_id(&mut self, id: usize) -> Result<(), MarisaError>;
+    fn init_state(&mut self) -> Result<(), MarisaError>;
+    fn clear(&mut self) -> Result<(), MarisaError>;
+    fn swap(&mut self, rhs: Self) -> Result<(), MarisaError>;
+}
+
+
+impl AgentMutTrait for marisa_Agent
+{
     fn set_query_str(&mut self, s: &str) -> Result<() , MarisaError>
     {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { agent_set_query_1(obj, s.as_ptr(), s.len(), &mut err_record) };
+	unsafe { agent_set_query_1(self as *mut Self as *mut marisa_Agent, s.as_ptr(), s.len(), &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn set_query_str_len(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { agent_set_query_1(obj, s.as_ptr(), l, &mut err_record) };
+	unsafe { agent_set_query_1(self as *mut Self as *mut marisa_Agent, s.as_ptr(), l, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn set_query_id(&mut self, id: usize) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_set_query_2)(obj, id, &mut err_record) };
+	unsafe { (agent_set_query_2)(self as *mut Self as *mut marisa_Agent, id, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn set_key_str(&mut self, s: &str) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_set_key_1)(obj, s.as_ptr(), s.len(), &mut err_record) };
+	unsafe { (agent_set_key_1)(self as *mut Self as *mut marisa_Agent, s.as_ptr(), s.len(), &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn set_key_str_length(&mut self, s: &str, l: usize) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_set_key_1)(obj, s.as_ptr(), l, &mut err_record) };
+	unsafe { (agent_set_key_1)(self as *mut Self as *mut marisa_Agent, s.as_ptr(), l, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn set_key_id(&mut self, id: usize) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_set_key_2)(obj, id, &mut err_record) };
+	unsafe { (agent_set_key_2)(self as *mut Self as *mut marisa_Agent, id, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
     fn init_state(&mut self) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_init_state)(obj, &mut err_record) };
+	unsafe { (agent_init_state)(self as *mut Self as *mut marisa_Agent, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
-	}
-    }
-    fn clear(&mut self) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
-	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (agent_clear)(obj, &mut err_record) };
-	if err_record.is_null() {
-	    Ok(())
-	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 
-    fn swap(&mut self, mut rhs: AgentObject) -> Result<(), MarisaError> {
-	let obj = self.mut_pointer();
+
+    fn clear(&mut self) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let rhs_obj = rhs.mut_pointer();
-	unsafe { (agent_swap)(obj, rhs_obj, &mut err_record) };
+	unsafe { (agent_clear)(self as *mut Self as *mut marisa_Agent, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
-	    Err(from_exception(err_record))
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn swap(&mut self, mut rhs: Self) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (agent_swap)(self as *mut Self as *mut marisa_Agent,
+			      &mut rhs as *mut Self as *mut marisa_Agent, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
 	}
     }
 }
-*/
+
+pub trait TrieTrait<A>
+{
+    fn save(&self, filename: &str) -> Result<(), MarisaError>;
+    fn write(&self, fd: utils::cint) -> Result<(), MarisaError>;
+    fn lookup(&self, agent: &mut A) -> Result<bool, MarisaError>;
+    fn reverse_lookup(&self, agent: &mut A) -> Result<(), MarisaError>;
+    fn common_prefix_search(&self, agent: &mut A) -> Result<bool, MarisaError>;
+    fn predictive_search(&self, agent: &mut A) -> Result<bool, MarisaError>;
+    fn num_tries(&self) -> Result<usize, MarisaError>;
+    fn num_keys(&self) -> Result<usize, MarisaError>;
+    fn num_nodes(&self) -> Result<usize, MarisaError>;
+    fn tail_mode(&self) -> Result<marisa_TailMode, MarisaError>;
+    fn node_order(&self) -> Result<marisa_NodeOrder, MarisaError>;
+    fn empty(&self) -> Result<bool, MarisaError>;
+    fn size(&self) -> Result<usize, MarisaError>;
+    fn total_size(&self) -> Result<usize, MarisaError>;
+    fn io_size(&self) -> Result<usize, MarisaError>;
+}
+
+
+pub trait TrieMutTrait<K>
+{
+    fn build(&mut self, keyset: &mut K, config_flags: u32) -> Result<(), MarisaError>;
+    fn mmap(&mut self, filename: &str) -> Result<(), MarisaError>;
+    fn map(&mut self, ptr: &[u8]) -> Result<(), MarisaError>;
+    fn load(&mut self, filename: &str) -> Result<(), MarisaError>;
+    fn read(&mut self, fd: utils::cint) -> Result<(), MarisaError>;
+    fn clear(&mut self) -> Result<(), MarisaError>;
+}
+
+
+impl TrieTrait<marisa_Agent> for marisa_Trie
+{
+    fn save(&self, filename: &str) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_save)(self as *const Self as *const marisa_Trie, filename.as_ptr(), &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn write(&self, fd: utils::cint) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_write)(self as *const Self as *const marisa_Trie, fd, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn lookup(&self, agent: &mut marisa_Agent) -> Result<bool, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_lookup)(self as *const Self as *const marisa_Trie,
+					   agent as *mut marisa_Agent, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn reverse_lookup(&self, agent: &mut marisa_Agent) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_reverse_lookup)(self as *const Self as *const marisa_Trie,
+				       agent as *mut marisa_Agent, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn common_prefix_search(&self, agent: &mut marisa_Agent) -> Result<bool, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_common_prefix_search)(self as *const Self as *const marisa_Trie,
+							 agent as *mut marisa_Agent, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn predictive_search(&self, agent: &mut marisa_Agent) -> Result<bool, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_predictive_search)(self as *const Self as *const marisa_Trie,
+						      agent as *mut marisa_Agent, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn num_tries(&self) -> Result<usize, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_num_tries)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn num_keys(&self) -> Result<usize, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_num_keys)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn num_nodes(&self) -> Result<usize, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_num_nodes)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn tail_mode(&self) -> Result<marisa_TailMode, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_tail_mode)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn node_order(&self) -> Result<marisa_NodeOrder, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value= unsafe { (trie_node_order)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn empty(&self) -> Result<bool, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_empty)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn size(&self) -> Result<usize, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_size)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn total_size(&self) -> Result<usize, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_total_size)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn io_size(&self) -> Result<usize, MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	let value = unsafe { (trie_io_size)(self as *const Self as *const marisa_Trie, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(value)
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+}
+
+impl TrieMutTrait<marisa_Keyset> for marisa_Trie
+{
+    fn build(&mut self, keyset: &mut marisa_Keyset, config_flags: u32) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_build)(self as *mut Self as *mut marisa_Trie,
+			      keyset as *mut marisa_Keyset,
+			      config_flags as utils::cint, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn mmap(&mut self, filename: &str) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_mmap)(self as *mut Self as *mut marisa_Trie, filename.as_ptr(), &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn map(&mut self, ptr: &[u8]) -> Result<(), MarisaError>  {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_map)(self as *mut Self as *mut marisa_Trie,
+			    ptr.as_ptr() as *const std::os::raw::c_void, ptr.len(), &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn load(&mut self, filename: &str) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_load)(self as *mut Self as *mut marisa_Trie, filename.as_ptr(), &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn read(&mut self, fd: utils::cint) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_read)(self as *mut Self as *mut marisa_Trie, fd, &mut err_record) };
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+
+    fn clear(&mut self) -> Result<(), MarisaError> {
+	let mut err_record: *const exception_record = ptr::null();
+	unsafe { (trie_clear)(self as *mut Self as *mut marisa_Trie, &mut err_record) }
+	if err_record.is_null() {
+	    Ok(())
+	} else {
+	    Err(MarisaException::from_exception(err_record))
+	}
+    }
+}
