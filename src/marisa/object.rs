@@ -4,7 +4,6 @@
 use std::os::raw::c_char;
 use std::ptr;
 use std::marker::PhantomData;
-use std::ops::Index;
 
 use super::error::*;
 use crate::utils;
@@ -27,6 +26,7 @@ use crate::ffi::marisa_trie::{
     key_set_str,
     key_set_id,
     key_set_weight,
+
     query_create,
     query_destroy,
     query_get,
@@ -37,6 +37,7 @@ use crate::ffi::marisa_trie::{
     query_set_id,
     query_clear,
     query_swap,
+
     keyset_create,
     keyset_destroy,
     keyset_push_back_0,
@@ -53,6 +54,7 @@ use crate::ffi::marisa_trie::{
     keyset_reset,
     keyset_clear,
     keyset_swap,
+
     agent_create,
     agent_destroy,
     agent_query,
@@ -67,6 +69,7 @@ use crate::ffi::marisa_trie::{
     agent_init_state,
     agent_clear,
     agent_swap,
+
     trie_create,
     trie_destroy,
     trie_build,
@@ -98,141 +101,28 @@ use crate::ffi::marisa_trie::{
 };
 
 
-/// marisa-trieオブジェクトをラップする。オブジェクトに対する操作はこの構造体に実装する。
-/// Wraps a marisa-trie object. Operations on the object are implemented in this structure.
-pub struct RawObjectMut<T> {
-    ptr: *mut T,
+pub trait KeyQueryRawFuncs<T> {
+    const FN_PTR: unsafe extern "C" fn(*const T, *mut *const exception_record) -> *const utils::cuchar;
+    const FN_LENGTH: unsafe extern "C" fn(*const T, *mut *const exception_record) -> usize;
+    const FN_ID: unsafe extern "C" fn(*const T, *mut *const exception_record) -> usize;
+    const FN_SET_STR: unsafe extern "C" fn(*mut T, *const c_char, length: usize, *mut *const exception_record);
+    const FN_SET_ID: unsafe extern "C" fn(*mut T, id: usize, *mut *const exception_record);
 }
 
-
-trait RawObjectPtr<T> {
-    fn get_ptr(&self) -> *const T;
-    fn from_ptr(ptr: *const T) -> Self;
-}
-
-
-impl<T> RawObjectPtr<T> for RawObjectMut<T> {
-    fn get_ptr(&self) -> *const T
-    {
-	self.ptr as *const T
-    }
-}
-
-
-trait RawObjectMutPtr<T> {
-    fn get_mut_ptr(&self) -> *mut T;
-    fn from_mut_ptr(ptr: *mut T) -> Self;
-}
-
-
-impl<T> RawObjectMutPtr<T> for RawObjectMut<T> {
-    fn get_mut_ptr(&self) -> *mut T
-    {
-	self.ptr
-    }
-
-    fn from_mut_ptr(ptr: *mut T) -> Self
-    {
-	Self {
-	    ptr
-	}
-    }
-}
-
-
-pub struct RawObject<T> {
-    ptr: *const T,
-}
-
-
-impl<T> RawObjectPtr<T> for RawObject<T> {
-    fn get_ptr(&self) -> *const T
-    {
-	self.ptr
-    }
-
-    fn from_ptr(ptr: *const T) -> Self {
-	Self {
-	    ptr
-	}
-    }
-}
-
-/// marisa-trieオブジェクトの生成、破棄。
-/// Creating and destroying a marisa-trie object.
-trait RawObjectMutTrait<T>: RawObjectMutPtr<T> {
-    const CREATE: unsafe extern "C" fn() -> *mut T;
-    const DESTROY: unsafe extern "C" fn(ptr: *mut T);
-    // const CREATE: fn() -> *mut T;
-    // const DESTROY: fn(*mut T);
-
-    fn new() -> Self where Self: Sized {
-	Self::from_mut_ptr(unsafe{ (Self::CREATE)() })
-    }
-
-    fn destroy(&self) {
-	unsafe { (Self::DESTROY)(Self::get_mut_ptr(self)) }
-    }
-}
-
-
-impl RawObjectMutTrait<marisa_Key> for RawObjectMut<marisa_Key> {
-    const CREATE: unsafe extern "C" fn() -> *mut marisa_Key = key_create;
-    const DESTROY: unsafe extern "C" fn(ptr: *mut marisa_Key) = key_destroy;
-}
-
-
-impl RawObjectMutTrait<marisa_Query> for RawObjectMut<marisa_Query> {
-    const CREATE: unsafe extern "C" fn() -> *mut marisa_Query = query_create;
-    const DESTROY: unsafe extern "C" fn(ptr: *mut marisa_Query) = query_destroy;
-}
-
-
-impl RawObjectMutTrait<marisa_Keyset> for RawObjectMut<marisa_Keyset> {
-    const CREATE: unsafe extern "C" fn() -> *mut marisa_Keyset = keyset_create;
-    const DESTROY: unsafe extern "C" fn(ptr: *mut marisa_Keyset) = keyset_destroy;
-}
-
-
-impl RawObjectMutTrait<marisa_Agent> for RawObjectMut<marisa_Agent> {
-    const CREATE: unsafe extern "C" fn() -> *mut marisa_Agent = agent_create;
-    const DESTROY: unsafe extern "C" fn(ptr: *mut marisa_Agent) = agent_destroy;
-}
-
-
-impl RawObjectMutTrait<marisa_Trie> for RawObjectMut<marisa_Trie> {
-    const CREATE: unsafe extern "C" fn() -> *mut marisa_Trie = trie_create;
-    const DESTROY: unsafe extern "C" fn(ptr: *mut marisa_Trie) = trie_destroy;
-}
-
-
-pub struct KeyQueryFuncs0<T> {
-//    get: fn(*const T, index: usize, *mut *const exception_record) -> utils::cuchar,
-    ptr: unsafe extern "C" fn(*const T, *mut *const exception_record) -> *const utils::cuchar,
-    length: unsafe extern "C" fn(*const T, *mut *const exception_record) -> usize,
-    id: unsafe extern "C" fn(*const T, *mut *const exception_record) -> usize,
-}
-
-pub struct KeyQueryFuncs1<T> {
-    set_str: unsafe extern "C" fn(*mut T, *const c_char, length: usize, *mut *const exception_record),
-    set_id: unsafe extern "C" fn(*mut T, id: usize, *mut *const exception_record),
-}
-
-pub trait KeyQueryMutTrait0<T>: RawObjectPtr<T> {
-    const FUNCS: KeyQueryFuncs0<T>;
-
+pub trait KeyQueryTrait<T>: KeyQueryRawFuncs<T>
+{
     fn get_ptr_length(&self) ->	Result<(*const utils::cuchar, usize), MarisaError>
     {
 	let mut err_record: *const exception_record = ptr::null();
 	let ptr = {
-	    let ptr = unsafe { (Self::FUNCS.ptr)(self.get_ptr(), &mut err_record) };
+	    let ptr = unsafe { (Self::FN_PTR)(self as *const Self as *const T, &mut err_record) };
 	    if !err_record.is_null() {
 		return Err(MarisaException::from_exception(err_record));
 	    }
 	    ptr
 	};
 	let length = {
-	    let length = unsafe { (Self::FUNCS.length)(self.get_ptr(), &mut err_record) };
+	    let length = unsafe { (Self::FN_LENGTH)(self as *const Self as *const T, &mut err_record) };
 	    if !err_record.is_null() {
 		return Err(MarisaException::from_exception(err_record));
 	    }
@@ -244,28 +134,19 @@ pub trait KeyQueryMutTrait0<T>: RawObjectPtr<T> {
     fn str(&self) -> Result<&str, MarisaError> {
 	let (ptr, length) = self.get_ptr_length()?;
 	if ptr.is_null() && length > 0 {
-	    Err(MarisaError {
-		source: "KQTrait::str".to_string(),
-		message: "get_ptr_length returns NULL".to_string()
-	    })
+	    Err(MarisaError::new("KeyQueryTrait::str","get_ptr_length returns NULL"))
 	} else if length == 0 {
 	    Ok("")
 	} else {
-            std::str::from_utf8(unsafe {std::slice::from_raw_parts(ptr, length)})
-		.map_err(|e| MarisaError {
-		    source: "KQTrait::str std::str::from_utf8".to_string(),
-		    message: e.to_string()
-		})
+	    std::str::from_utf8(unsafe {std::slice::from_raw_parts(ptr, length)})
+	       .map_err(|e| MarisaError::new("KeyQueryTrait::str", "get_ptr_length returns NULL"))
 	}
     }
 
     fn bin(&self) -> Result<&[u8], MarisaError> {
 	let (ptr, length) = self.get_ptr_length()?;
 	if ptr.is_null() && length > 0 {
-	    Err(MarisaError {
-		source: "KQTrait::bin".to_string(),
-		message: "get_ptr_length returns Error".to_string()
-	    })
+	    Err(MarisaError::new("KeyQueryTrait::bin", "get_ptr_length returns Error"))
 	} else if length == 0 {
 	    Ok(b"")
         } else {
@@ -288,7 +169,7 @@ pub trait KeyQueryMutTrait0<T>: RawObjectPtr<T> {
 //    #[cfg(not(release))]
     fn ptr(&self) -> Result<*const u8, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { (Self::FUNCS.ptr)(self.get_ptr(), &mut err_record) };
+	let value = unsafe { (Self::FN_PTR)(self as *const Self as *const T, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value as *const u8)
 	} else {
@@ -298,7 +179,7 @@ pub trait KeyQueryMutTrait0<T>: RawObjectPtr<T> {
 
     fn id(&self) -> Result<usize, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { (Self::FUNCS.id)(self.get_ptr(), &mut err_record) };
+	let value = unsafe { (Self::FN_ID)(self as *const Self as *const T, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
@@ -309,7 +190,7 @@ pub trait KeyQueryMutTrait0<T>: RawObjectPtr<T> {
 //    #[cfg(not(release))]
     fn length(&self) -> Result<usize, MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	let value = unsafe { (Self::FUNCS.length)(self.get_ptr(), &mut err_record) };
+	let value = unsafe { (Self::FN_LENGTH)(self as *const Self as *const T, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(value)
 	} else {
@@ -318,35 +199,12 @@ pub trait KeyQueryMutTrait0<T>: RawObjectPtr<T> {
     }
 }
 
-//impl KeyQueryMutTrait0<marisa_Key> for RawObjectPtr<marisa_Key> {
-impl<T: RawObjectPtr<marisa_Key>> KeyQueryMutTrait0<marisa_Key> for T {
-    const FUNCS: KeyQueryFuncs0<marisa_Key> =
-	KeyQueryFuncs0::<marisa_Key> {
-	    ptr: key_ptr,
-	    length: key_length,
-	    id: key_id,
-	};
-
-}
-
-//impl KeyQueryMutTrait0<marisa_Query> for RawObjectPtr<marisa_Query> {
-impl<T: RawObjectPtr<marisa_Query>> KeyQueryMutTrait0<marisa_Query> for T {
-    const FUNCS: KeyQueryFuncs0<marisa_Query> =
-	KeyQueryFuncs0::<marisa_Query> {
-	    ptr: query_ptr,
-	    length: query_length,
-	    id: query_id,
-	};
-
-}
-
-pub trait KeyQueryMutTrait1<T>: RawObjectMutPtr<T> {
-    const FUNCS: KeyQueryFuncs1<T>;
+pub trait KeyQueryMutTrait<T>: KeyQueryRawFuncs<T> {
 
 //    #[cfg(not(release))]
     fn set_str(&mut self, str: &str) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (Self::FUNCS.set_str)(self.get_mut_ptr(), str.as_ptr() as *const c_char, str.len(), &mut err_record) };
+	unsafe { (Self::FN_SET_STR)(self as *mut Self as *mut T, str.as_ptr() as *const c_char, str.len(), &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -357,7 +215,7 @@ pub trait KeyQueryMutTrait1<T>: RawObjectMutPtr<T> {
 //    #[cfg(not(release))]
     fn set_str_length(&mut self, str: &str, length: usize) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (Self::FUNCS.set_str)(self.get_mut_ptr(), str.as_ptr() as *const c_char, length, &mut err_record) };
+	unsafe { (Self::FN_SET_STR)(self as *mut Self as *mut T, str.as_ptr() as *const c_char, length, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -368,7 +226,7 @@ pub trait KeyQueryMutTrait1<T>: RawObjectMutPtr<T> {
 //    #[cfg(not(release))]
     fn set_id(&mut self, id: usize) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
-	unsafe { (Self::FUNCS.set_id)(self.get_mut_ptr(), id, &mut err_record) };
+	unsafe { (Self::FN_SET_ID)(self as *mut Self as *mut T, id, &mut err_record) };
 	if err_record.is_null() {
 	    Ok(())
 	} else {
@@ -377,7 +235,25 @@ pub trait KeyQueryMutTrait1<T>: RawObjectMutPtr<T> {
     }
 }
 
+impl KeyQueryRawFuncs<marisa_Key> for marisa_Key {
+    const FN_PTR: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> *const utils::cuchar = key_ptr;
+    const FN_LENGTH: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> usize = key_length;
+    const FN_ID: unsafe extern "C" fn(*const marisa_Key, *mut *const exception_record) -> usize = key_id;
+    const FN_SET_STR: unsafe extern "C" fn(*mut marisa_Key, *const c_char, length: usize, *mut *const exception_record) = key_set_str;
+    const FN_SET_ID: unsafe extern "C" fn(*mut marisa_Key, id: usize, *mut *const exception_record) = key_set_id;
+}
 
+
+impl KeyQueryRawFuncs<marisa_Query> for marisa_Query {
+    const FN_PTR: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> *const utils::cuchar = query_ptr;
+    const FN_LENGTH: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> usize = query_length;
+    const FN_ID: unsafe extern "C" fn(*const marisa_Query, *mut *const exception_record) -> usize = query_id;
+    const FN_SET_STR: unsafe extern "C" fn(*mut marisa_Query, *const c_char, length: usize, *mut *const exception_record) = query_set_str;
+    const FN_SET_ID: unsafe extern "C" fn(*mut marisa_Query, id: usize, *mut *const exception_record) = query_set_id;
+}
+
+
+/*
 pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
     fn index(&self, i: usize) -> Result<RawObjectPtr<marisa_Key>, MarisaError>
     {
@@ -426,7 +302,8 @@ pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 	}
     }
 }
-
+*/
+/*
 pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
     fn push_back_key(&mut self, key: &KeyObject) -> Result<(), MarisaError> {
 	let mut err_record: *const exception_record = ptr::null();
@@ -513,9 +390,11 @@ pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {
 	}
     }
 }
-
+*/
+/*
 impl std::ops::Index<usize> for RawObjectMutPtr<marisa_Keyset> {
 }
+*/
 
 //pub trait KeysetTrait0: RawObjectPtr<marisa_Keyset> {
 //pub trait KeysetTrait1: RawObjectMutPtr<marisa_Keyset> {

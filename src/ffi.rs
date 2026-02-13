@@ -1,5 +1,5 @@
 
-mod marisa_trie;
+pub(crate) mod marisa_trie;
 
 pub use marisa_trie::{
     marisa_num_tries_MARISA_MIN_NUM_TRIES as MARISA_MIN_NUM_TRIES,
@@ -24,6 +24,10 @@ pub use marisa_trie::{
     marisa_config_mask_MARISA_CONFIG_MASK as MARISA_CONFIG_MASK,
     marisa_TailMode as TailMode,
     marisa_NodeOrder as NodeOrder,
+
+    exception_record,
+    exception_name,
+    exception_message,
 };
 
 /*

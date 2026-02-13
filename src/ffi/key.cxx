@@ -2,17 +2,18 @@
 #include "ffi.hxx"
 #include "except.hxx"
 
-marisa_Key* key_create()
+marisa::Key* key_create()
 {
-     return reinterpret_cast<marisa_Key*>(new marisa::Key());
+     return new marisa::Key();
 }
 
-void key_destroy(marisa_Key* key)
+void key_destroy(marisa::Key* key)
 {
-     delete reinterpret_cast<marisa::Key*>(key);
+     delete key;
 }
 
-unsigned char key_index(const marisa_Key* key, std::size_t i, const struct exception_record ** exception)
+/*
+unsigned char key_index(const marisa::Key* key, std::size_t i, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
@@ -22,76 +23,77 @@ unsigned char key_index(const marisa_Key* key, std::size_t i, const struct excep
      }
      return 0;
 }
+*/
 
-const unsigned char *key_ptr(const marisa_Key* key, const struct exception_record ** exception)
+const unsigned char *key_ptr(const marisa::Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  return (const unsigned char *)reinterpret_cast<const marisa::Key*>(key)->ptr();
+	  return reinterpret_cast<const unsigned char *>(key->ptr());
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
      return nullptr;
 }
 
-std::size_t key_length(const marisa_Key* key, const struct exception_record ** exception)
+std::size_t key_length(const marisa::Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  return reinterpret_cast<const marisa::Key*>(key)->length();
+	  return key->length();
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
      return 0;
 }
 
-std::size_t key_id(const marisa_Key* key, const struct exception_record ** exception)
+std::size_t key_id(const marisa::Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  return reinterpret_cast<const marisa::Key*>(key)->id();
+	  return key->id();
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
      return 0;
 }
 
-float key_weight(const marisa_Key* key, const struct exception_record ** exception)
+float key_weight(const marisa::Key* key, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  return reinterpret_cast<const marisa::Key*>(key)->weight();
+	  return key->weight();
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
      return 0;
 }
 
-void key_set_str(marisa_Key *key, const char *ptr, size_t length, const struct exception_record ** exception)
+void key_set_str(marisa::Key *key, const char *ptr, size_t length, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  reinterpret_cast<marisa::Key*>(key)->set_str(ptr, length);
+	  key->set_str(ptr, length);
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
 }
 
-void key_set_id(marisa_Key *key, size_t id, const struct exception_record ** exception)
+void key_set_id(marisa::Key *key, size_t id, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  reinterpret_cast<marisa::Key*>(key)->set_id(id);
+	  key->set_id(id);
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
 }
 
-void key_set_weight(marisa_Key *key, float weight, const struct exception_record ** exception)
+void key_set_weight(marisa::Key *key, float weight, const struct exception_record ** exception)
 {
      *exception = nullptr;
      try {
-	  reinterpret_cast<marisa::Key*>(key)->set_weight(weight);
+	  key->set_weight(weight);
      } catch (const std::exception &ex) {
 	  *exception = save_exception(ex);
      }
