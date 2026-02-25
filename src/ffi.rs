@@ -22,6 +22,7 @@ pub use marisa_trie::{
     marisa_config_mask_MARISA_TAIL_MODE_MASK as MARISA_TAIL_MODE_MASK,
     marisa_config_mask_MARISA_NODE_ORDER_MASK as MARISA_NODE_ORDER_MASK,
     marisa_config_mask_MARISA_CONFIG_MASK as MARISA_CONFIG_MASK,
+
     marisa_TailMode as TailMode,
     marisa_NodeOrder as NodeOrder,
 
