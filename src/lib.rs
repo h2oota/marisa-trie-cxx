@@ -18,29 +18,3 @@ mod ffi;
 mod utils;
 
 // ===== Re-exports (public API surface) =====
-
-
-
-pub use marisa:: {
-    // KeyObject as Key,
-    // QueryObject as Query,
-    // KeysetObject as Keyset,
-    // AgentObject as Agent,
-    // TrieObject as Trie,
-
-    // KeyRef,
-    // QueryRef,
-    // KeysetRef,
-    // AgentRef,
-    // TrieRef,
-
-
-//    KeyQueryTrait,
-/*
-    KeyTrait,
-    QueryTrait,
-    KeysetTrait,
-    AgentTrait,
-    TrieTrait,
-*/
-};

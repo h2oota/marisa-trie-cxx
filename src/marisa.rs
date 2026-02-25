@@ -1,6 +1,7 @@
 #![allow(unused_imports)]
 
 
+mod raw_object;
 mod object;
 mod error;
 
@@ -29,34 +30,7 @@ pub use crate::ffi::{
     NodeOrder,
 };
 
-
-
-pub use object::{
-
-/*
-    KeyObject,
-    QueryObject,
-    KeysetObject,
-    AgentObject,
-    TrieObject,
-
-    KeyRef,
-    QueryRef,
-    KeysetRef,
-    AgentRef,
-    TrieRef,
-*/
-
-//    KeyQueryTrait,
-
-/*
-    KeyTrait,
-    QueryTrait,
-    KeysetTrait,
-    AgentTrait,
-    TrieTrait,
-*/
-};
+use error::*;
 
 
 #[cfg(test)]
